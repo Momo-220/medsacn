@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+venv
+.venv
+env
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Tests
+.pytest_cache
+.coverage
+htmlcov
+*.db
+mediscan.db
+
+# Fichiers sensibles (NE JAMAIS inclure en image)
+firebase-admin-key.json
+gcs-credentials.json
+*.pem
+*.key
+
+# Doc / misc
+*.md
+!README.md

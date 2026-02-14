@@ -1,0 +1,25 @@
+# Ignore files for Google Cloud deployment
+.gcloudignore
+.git
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.env
+.env.*
+*.key.json
+*.pem
+.DS_Store
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+tests/
+README.md
+
+

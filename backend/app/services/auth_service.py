@@ -1,0 +1,97 @@
+"""
+Authentication Service
+JWT validation and user access control
+"""
+
+from fastapi import Depends, HTTPException, status, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Dict, Any, Optional
+import structlog
+
+from app.services.firebase_service import firebase_service
+from app.core.exceptions import AuthenticationError, AuthorizationError
+
+logger = structlog.get_logger()
+
+# HTTP Bearer token scheme
+security = HTTPBearer()
+security_optional = HTTPBearer(auto_error=False)
+
+
+# Fonctions de dependance simples (pas de static methods - meilleure compat FastAPI)
+
+async def verify_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> Dict[str, Any]:
+    """
+    Verify Firebase JWT token
+    Use as FastAPI dependency for protected routes
+    """
+    token = credentials.credentials
+    
+    try:
+        user_data = await firebase_service.verify_token(token)
+        
+        logger.info("User authenticated", user_id=user_data["uid"])
+        return user_data
+        
+    except AuthenticationError:
+        raise
+    except Exception as e:
+        logger.error("Authentication failed", error=str(e))
+        raise AuthenticationError("Invalid authentication")
+
+
+async def get_current_user(
+    user_data: Dict[str, Any] = Depends(verify_token),
+) -> Dict[str, Any]:
+    """
+    Get current authenticated user
+    Use as dependency to access user info in routes
+    """
+    return user_data
+
+
+async def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional),
+) -> Optional[Dict[str, Any]]:
+    """
+    Get current user if token present, None otherwise.
+    Use for routes that work with or without auth.
+    """
+    if not credentials or not credentials.credentials:
+        return None
+    try:
+        return await firebase_service.verify_token(credentials.credentials)
+    except Exception:
+        return None
+
+
+async def require_full_account(
+    user_data: Dict[str, Any] = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Exige un compte inscrit (pas anonyme). Utiliser pour historique, rappels, etc.
+    Les utilisateurs en mode essai reçoivent 403.
+    """
+    if user_data.get("is_anonymous"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Inscrivez-vous pour utiliser cette fonctionnalité",
+        )
+    return user_data
+
+
+async def require_verified_email(
+    user_data: Dict[str, Any] = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Require user to have verified email
+    Use for sensitive operations
+    """
+    if not user_data.get("email_verified"):
+        raise AuthorizationError("Email verification required")
+    
+    return user_data
+
+
