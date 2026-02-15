@@ -9,6 +9,8 @@ interface NavigationContextType {
   navigateTo: (screen: Screen) => void;
   goBack: () => void;
   history: Screen[];
+  cameraOverlayOpen: boolean;
+  setCameraOverlayOpen: (open: boolean) => void;
 }
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
@@ -16,6 +18,7 @@ const NavigationContext = createContext<NavigationContextType | undefined>(undef
 export function NavigationProvider({ children }: { children: React.ReactNode }) {
   const [currentScreen, setCurrentScreen] = useState<Screen>('home');
   const [history, setHistory] = useState<Screen[]>(['home']);
+  const [cameraOverlayOpen, setCameraOverlayOpen] = useState(false);
 
   const navigateTo = (screen: Screen) => {
     setHistory(prev => [...prev, screen]);
@@ -32,7 +35,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <NavigationContext.Provider value={{ currentScreen, navigateTo, goBack, history }}>
+    <NavigationContext.Provider value={{ currentScreen, navigateTo, goBack, history, cameraOverlayOpen, setCameraOverlayOpen }}>
       {children}
     </NavigationContext.Provider>
   );

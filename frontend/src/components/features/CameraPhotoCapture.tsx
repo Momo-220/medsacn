@@ -103,7 +103,7 @@ export function CameraPhotoCapture({ onCapture, onClose }: CameraPhotoCapturePro
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black min-h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-black min-h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       <div className="relative flex-1 flex flex-col min-h-0">
         <button
           onClick={onClose}
@@ -133,8 +133,8 @@ export function CameraPhotoCapture({ onCapture, onClose }: CameraPhotoCapturePro
               <div className="w-[85%] max-w-[320px] aspect-[3/4] rounded-2xl border-4 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.4)]" />
             </div>
 
-            {/* Bouton centré au-dessus de la barre de navigation */}
-            <div className="absolute left-0 right-0 flex justify-center bottom-[calc(6rem+env(safe-area-inset-bottom))]">
+            {/* Bouton au-dessus de la barre de nav (11rem pour dégager la barre flottante ~150px) */}
+            <div className="absolute left-0 right-0 flex justify-center bottom-[calc(11rem+env(safe-area-inset-bottom))]">
               <button
                 onClick={takePhoto}
                 disabled={!cameraReady}
@@ -145,7 +145,7 @@ export function CameraPhotoCapture({ onCapture, onClose }: CameraPhotoCapturePro
               </button>
             </div>
 
-            <p className="absolute left-0 right-0 text-center text-white/90 text-sm bottom-[calc(8rem+env(safe-area-inset-bottom))]">
+            <p className="absolute left-0 right-0 text-center text-white/90 text-sm bottom-[calc(13rem+env(safe-area-inset-bottom))]">
               {language === 'fr' ? 'Cadrez le médicament puis prenez la photo' : 'Frame the medication then take the photo'}
             </p>
           </>

@@ -288,9 +288,19 @@ async def scan_medication(
             except Exception as e:
                 logger.error("Failed to save scan to PostgreSQL", error=str(e))
         
-        # 6. Consommer les crédits après succès - coût FIXE (5 gemmes) pas basé sur tokens
-        credits_service.consume(user_id, credits_service.SCAN_COST, is_anonymous=is_anonymous)
-        logger.info("Credits consumed (fixed cost)", cost=credits_service.SCAN_COST, user_id=user_id)
+        # 6. Consommer les crédits seulement si identification réussie (pas si "Médicament non identifié")
+        med_name = (analysis.get("medication_name") or "").strip()
+        confidence = (analysis.get("confidence") or "low").lower()
+        identification_failed = (
+            "non identifié" in med_name.lower()
+            or "not identified" in med_name.lower()
+            or (confidence == "low" and (not med_name or med_name.lower() in ("unknown", "médicament non identifié")))
+        )
+        if not identification_failed:
+            credits_service.consume(user_id, credits_service.SCAN_COST, is_anonymous=is_anonymous)
+            logger.info("Credits consumed (fixed cost)", cost=credits_service.SCAN_COST, user_id=user_id)
+        else:
+            logger.info("Identification failed, credits NOT consumed", medication=med_name, confidence=confidence, user_id=user_id)
 
         # 7. Build response - Notice pharmaceutique complète
         # Helper function pour convertir les listes en strings

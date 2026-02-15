@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { OrganicWaveLoader } from '@/components/ui/Loading';
 import { ArrowLeft, Upload, X, Camera, Settings } from 'lucide-react';
@@ -18,7 +18,7 @@ import { useCredits } from '@/contexts/CreditsContext';
 
 export function ScanScreen() {
   const { getIdToken } = useAuth();
-  const { navigateTo, goBack } = useNavigation();
+  const { navigateTo, goBack, setCameraOverlayOpen } = useNavigation();
   const { refreshCredits } = useCredits();
   const { refreshStats } = useHealth();
   const { t, language } = useLanguage();
@@ -30,6 +30,11 @@ export function ScanScreen() {
   const [showCameraCapture, setShowCameraCapture] = useState(false);
   const [showCreditsModal, setShowCreditsModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setCameraOverlayOpen(showCameraCapture);
+    return () => setCameraOverlayOpen(false);
+  }, [showCameraCapture, setCameraOverlayOpen]);
 
   const handleFileSelect = async (file: File) => {
     if (!file.type.startsWith('image/')) {

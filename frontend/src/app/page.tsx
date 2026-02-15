@@ -66,7 +66,7 @@ function isFirstTimeUse(): boolean {
 }
 
 export default function App() {
-  const { currentScreen } = useNavigation();
+  const { currentScreen, cameraOverlayOpen } = useNavigation();
   const { user, loading: authLoading, signOut } = useAuth();
   const [phase, setPhase] = useState<AppPhase>('splash');
   const [ready, setReady] = useState(false);
@@ -205,8 +205,8 @@ export default function App() {
     setShowInstallPrompt(false);
   };
 
-  // Afficher la barre de navigation partout sauf sur le profil, settings et le chat
-  const showNavBar = currentScreen !== 'profile' && currentScreen !== 'chat' && currentScreen !== 'settings';
+  // Cacher la nav sur profil/settings/chat ou quand la caméra est ouverte
+  const showNavBar = currentScreen !== 'profile' && currentScreen !== 'chat' && currentScreen !== 'settings' && !cameraOverlayOpen;
 
   return (
     <ErrorToastContainer>
