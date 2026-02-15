@@ -12,7 +12,7 @@ import { useHealth } from '@/contexts/HealthContext';
 import { ScanResult } from '@/types';
 import { ScanResultScreen } from './ScanResultScreen';
 import { ScanningScreen } from './ScanningScreen';
-import { LiveCameraScanner } from '@/components/features/LiveCameraScanner';
+import { CameraPhotoCapture } from '@/components/features/CameraPhotoCapture';
 import { CreditsModal } from '@/components/ui/CreditsModal';
 import { useCredits } from '@/contexts/CreditsContext';
 
@@ -27,7 +27,7 @@ export function ScanScreen() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showLiveScanner, setShowLiveScanner] = useState(false);
+  const [showCameraCapture, setShowCameraCapture] = useState(false);
   const [showCreditsModal, setShowCreditsModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -110,19 +110,16 @@ export function ScanScreen() {
     }
   };
 
-  // Gérer le résultat du scan en direct
-  const handleLiveScanComplete = (result: ScanResult) => {
-    setScanResult(result);
-    setStep('result');
-    setShowLiveScanner(false);
+  const handleCameraCapture = (file: File) => {
+    setShowCameraCapture(false);
+    handleFileSelect(file);
   };
 
-  // Afficher le scanner en direct
-  if (showLiveScanner) {
+  if (showCameraCapture) {
     return (
-      <LiveCameraScanner
-        onScanComplete={handleLiveScanComplete}
-        onClose={() => setShowLiveScanner(false)}
+      <CameraPhotoCapture
+        onCapture={handleCameraCapture}
+        onClose={() => setShowCameraCapture(false)}
       />
     );
   }
@@ -206,26 +203,21 @@ export function ScanScreen() {
                 </div>
               </div>
 
-              {/* Bouton Caméra Live - Coloré */}
+              {/* Bouton Caméra - Prendre une photo */}
               <div className="w-40 h-44 sm:w-48 sm:h-52">
                 <button
-                  onClick={() => setShowLiveScanner(true)}
+                  onClick={() => setShowCameraCapture(true)}
                   className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl p-4 sm:p-6 w-full h-full text-center cursor-pointer flex flex-col items-center justify-center shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all"
                 >
                   <div className="w-14 h-14 sm:w-16 sm:h-16 mb-3 rounded-2xl bg-white/20 flex items-center justify-center">
                     <Camera className="w-7 h-7 sm:w-8 sm:h-8 text-white" strokeWidth={2} />
                   </div>
                   <p className="text-white font-bold text-sm sm:text-base mb-1">
-                    {t('liveScan')}
+                    {language === 'fr' ? 'Prendre une photo' : 'Take a photo'}
                   </p>
-                  <p className="text-white/80 text-xs mb-2">
-                    {language === 'fr' ? 'Temps réel' : 'Real-time'}
+                  <p className="text-white/80 text-xs">
+                    {language === 'fr' ? 'Caméra puis analyse' : 'Camera then analyze'}
                   </p>
-                  <div className="px-3 py-1 bg-white/20 rounded-full">
-                    <span className="text-white text-[10px] font-bold uppercase tracking-wide">
-                      ✨ {language === 'fr' ? 'Nouveau' : 'New'}
-                    </span>
-                  </div>
                 </button>
               </div>
             </div>

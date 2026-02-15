@@ -64,18 +64,16 @@ export function MedicationReminders() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [reminderToDelete, setReminderToDelete] = useState<string | null>(null);
 
-  // Vérifier le statut des notifications au démarrage
   useEffect(() => {
     const checkNotificationStatus = async () => {
       if (NotificationService.isSupported()) {
         const status = NotificationService.permissionStatus;
         if (status === 'granted') {
-          setNotificationsEnabled(true);
-          await NotificationService.initialize();
+          const ok = await NotificationService.initialize();
+          setNotificationsEnabled(ok);
         }
       }
     };
-    
     checkNotificationStatus();
     
     NotificationService.setupMessageListener((message) => {
@@ -86,18 +84,22 @@ export function MedicationReminders() {
   }, []);
 
   // Demander la permission pour les notifications
-  const handleEnableNotifications = () => {
+  const handleEnableNotifications = async () => {
     if (!NotificationService.isSupported()) {
       alert(t('notificationsNotSupported') || 'Les notifications ne sont pas supportées sur ce navigateur.');
       return;
     }
-    
+
     const status = NotificationService.permissionStatus;
     if (status === 'granted') {
-      setNotificationsEnabled(true);
+      const ok = await NotificationService.initialize();
+      setNotificationsEnabled(ok);
+      if (ok && reminders.length > 0) {
+        await NotificationService.scheduleAllReminders(reminders);
+      }
       return;
     }
-    
+
     setShowNotificationModal(true);
   };
 

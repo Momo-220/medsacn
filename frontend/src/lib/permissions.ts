@@ -144,11 +144,15 @@ export class PermissionsService {
     const isSafari = /Safari/.test(navigator.userAgent) && !isChrome;
 
     if (type === 'notifications') {
+      const isPWA = typeof window !== 'undefined' && (window as any).matchMedia?.('(display-mode: standalone)')?.matches;
       if (isIOS) {
-        return 'Allez dans Réglages > Safari > Notifications pour activer les notifications.';
+        if (isPWA) {
+          return 'Réglages > MediScan > Notifications : activez "Autoriser les notifications".';
+        }
+        return 'Ajoutez l\'app à l\'écran d\'accueil (partage > sur l\'écran d\'accueil), puis Réglages > MediScan > Notifications.';
       }
       if (isAndroid && isChrome) {
-        return 'Appuyez sur le cadenas dans la barre d\'adresse, puis activez les Notifications.';
+        return 'Appuyez sur le cadenas ou l\'icône ⓘ dans la barre d\'adresse, puis activez les Notifications.';
       }
       return 'Cliquez sur le cadenas dans la barre d\'adresse et autorisez les notifications.';
     }

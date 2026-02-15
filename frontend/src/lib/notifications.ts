@@ -68,21 +68,26 @@ export class NotificationService {
     }
 
     try {
-      // Enregistrer le Service Worker
       this.registration = await navigator.serviceWorker.register('/sw.js');
       console.log('✅ Service Worker enregistré:', this.registration);
-      
-      // Attendre que le SW soit actif
-      if (this.registration.installing) {
+
+      const sw = this.registration.installing || this.registration.waiting;
+      if (sw) {
         await new Promise<void>((resolve) => {
-          this.registration!.installing!.addEventListener('statechange', function() {
-            if (this.state === 'activated') {
+          if (sw.state === 'activated') {
+            resolve();
+            return;
+          }
+          const onStateChange = () => {
+            if (sw.state === 'activated') {
+              sw.removeEventListener('statechange', onStateChange);
               resolve();
             }
-          });
+          };
+          sw.addEventListener('statechange', onStateChange);
         });
       }
-      
+
       return true;
     } catch (error) {
       console.error('Erreur lors de l\'enregistrement du Service Worker:', error);
