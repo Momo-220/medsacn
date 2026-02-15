@@ -86,7 +86,11 @@ class StorageService:
         """
         try:
             # Mode dev - stockage local, servi via le backend
+            # En production, on exige GCS (pas de stockage local)
             if not self.bucket:
+                if settings.ENVIRONMENT == "production":
+                    logger.warning("GCS not initialized in production - skipping image save")
+                    raise ImageProcessingError("Storage non configuré en production")
                 import os
                 file_extension = content_type.split("/")[-1]
                 filename = f"{uuid.uuid4()}.{file_extension}"
@@ -95,10 +99,13 @@ class StorageService:
                 with open(filepath, "wb") as f:
                     f.write(image_bytes)
                 
-                # URL accessible via le backend - utiliser IP locale pour mobile
-                # Note: En production, utiliser GCS avec signed URLs
-                base_url = "http://192.168.1.126:8888"
-                image_url = f"{base_url}/uploads/{filename}"
+                # URL accessible via le backend - utiliser API_PUBLIC_URL ou détection
+                base_url = (
+                    settings.API_PUBLIC_URL
+                    or os.getenv("API_PUBLIC_URL")
+                    or "http://localhost:8888"
+                )
+                image_url = f"{base_url.rstrip('/')}/uploads/{filename}"
                 
                 logger.info(" DEV: Image saved locally", filename=filename, url=image_url, user_id=user_id)
                 return image_url

@@ -10,6 +10,7 @@ import { MedicationReminders } from '@/components/features/MedicationReminders';
 import { HealthTipsCard } from '@/components/features/HealthTipsCard';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { translateCategory, formatSimpleDate } from '@/lib/i18n/utils';
+import { getImageUrl } from '@/lib/imageUrl';
 import type { Language } from '@/lib/i18n/translations';
 
 const USER_NAME_STORAGE_KEY = 'mediscan_user_name';
@@ -245,7 +246,7 @@ export function HomeScreen() {
                   type={scan.type}
                   time={formatSimpleDate(scan.date, language)}
                   timeDetail={scan.time}
-                  image={scan.image}
+                  image={getImageUrl(scan.image) ?? undefined}
                 />
               ))
             ) : (

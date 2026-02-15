@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
-import { ArrowLeft, ThumbsUp, Share2, Settings, ChevronLeft, ChevronRight, Bell, X, Clock, Calendar as CalendarIcon, Repeat } from 'lucide-react';
+import { ArrowLeft, Settings, ChevronLeft, ChevronRight, Bell, X, Clock, Calendar as CalendarIcon, Repeat } from 'lucide-react';
 import { ScanResult, MedicationSuggestion } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -10,6 +10,7 @@ import { useNavigation } from '@/lib/navigation/NavigationContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useHealth } from '@/contexts/HealthContext';
 import { apiClient } from '@/lib/api/client';
+import { getImageUrl } from '@/lib/imageUrl';
 import { translateCategory } from '@/lib/i18n/utils';
 import { CustomTimePicker } from '@/components/ui/CustomTimePicker';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
@@ -206,10 +207,10 @@ export function ScanResultScreen({ result }: ScanResultScreenProps) {
       {/* Content - Responsive */}
       <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
         {/* Medication Image - Always on Top */}
-        {result.image_url && (
+        {getImageUrl(result.image_url) && (
           <div className="card dark:bg-gray-800 p-4">
             <img
-              src={result.image_url}
+              src={getImageUrl(result.image_url)!}
               alt={result.medication_name}
               className="w-full h-64 object-contain rounded-xl"
             />
@@ -418,31 +419,6 @@ export function ScanResultScreen({ result }: ScanResultScreenProps) {
           </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <Button
-            variant="ghost"
-            className="flex-1"
-            icon={<ThumbsUp className="w-5 h-5" />}
-          >
-            {t('useful') || 'Utile'}
-          </Button>
-          <Button
-            variant="primary"
-            className="flex-1"
-            icon={<Bell className="w-5 h-5" />}
-            onClick={() => setShowReminderModal(true)}
-          >
-            {t('addReminder') || 'Ajouter un rappel'}
-          </Button>
-          <Button
-            variant="ghost"
-            className="flex-1"
-            icon={<Share2 className="w-5 h-5" />}
-          >
-            {t('share') || 'Partager'}
-          </Button>
-        </div>
       </div>
 
       {/* Modal de création de rappel */}

@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     API_PORT: int = 8888  # Changé pour correspondre au frontend
     API_VERSION: str = "v1"
     API_PREFIX: str = "/api/v1"
+    API_PUBLIC_URL: Optional[str] = None  # URL publique du backend (ex: https://xxx.run.app)
     CORS_ORIGINS: str = "http://localhost:3001,http://localhost:3002"
     
     # Google Cloud

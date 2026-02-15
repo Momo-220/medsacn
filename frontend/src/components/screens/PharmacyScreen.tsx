@@ -18,6 +18,7 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useHealth } from '@/contexts/HealthContext';
+import { getImageUrl } from '@/lib/imageUrl';
 import { TrialUpgradePrompt } from '@/components/ui/TrialUpgradePrompt';
 import { translateCategory } from '@/lib/i18n/utils';
 import { getPharmacyCache, setPharmacyCache, isOnline } from '@/lib/pharmacyCache';
@@ -251,9 +252,9 @@ export function PharmacyScreen() {
                 <div className="flex items-start gap-4">
                   {/* Image du médicament ou icône par défaut */}
                   <div className="w-14 h-14 rounded-xl bg-primary/10 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {med.image ? (
+                    {getImageUrl(med.image) ? (
                       <img
-                        src={med.image}
+                        src={getImageUrl(med.image)!}
                         alt={med.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -264,7 +265,7 @@ export function PharmacyScreen() {
                         }}
                       />
                     ) : null}
-                    <Pill className={`w-6 h-6 text-primary dark:text-blue-400 ${med.image ? 'hidden' : ''}`} />
+                    <Pill className={`w-6 h-6 text-primary dark:text-blue-400 ${getImageUrl(med.image) ? 'hidden' : ''}`} />
                   </div>
 
                   {/* Infos */}
