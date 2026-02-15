@@ -109,11 +109,18 @@ class CreditsService:
         return credits.credits
 
     def add_credits(self, user_id: str, amount: int, is_anonymous: bool = False) -> int:
-        """Ajoute des gemmes bonus au solde actuel (après application du reset journalier)."""
+        """Ajoute des gemmes bonus au solde actuel. Bloqué si quota journalier épuisé (attendre demain)."""
+        from fastapi import HTTPException, status
         self.get_or_create(user_id, is_anonymous)
         db = self._get_db()
         try:
             credits = db.query(UserCredits).filter(UserCredits.user_id == user_id).first()
+            # Bloquer si quota journalier épuisé : l'utilisateur doit attendre le reset du lendemain
+            if credits and credits.credits == 0 and credits.quota_reset_date == date.today():
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Votre quota journalier est épuisé. Revenez demain pour obtenir votre nouveau quota de gemmes.",
+                )
             if not credits:
                 quota = self._get_daily_quota(is_anonymous)
                 credits = UserCredits(user_id=user_id, credits=quota + amount, quota_reset_date=date.today())

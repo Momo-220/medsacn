@@ -288,14 +288,9 @@ async def scan_medication(
             except Exception as e:
                 logger.error("Failed to save scan to PostgreSQL", error=str(e))
         
-        # 6. Consommer les crédits après succès basé sur les tokens réels
-        tokens_used = analysis.get("_tokens_used", 0)
-        if tokens_used > 0:
-            credits_service.consume(user_id, credits_service.SCAN_COST, actual_tokens=tokens_used, is_anonymous=is_anonymous)
-            logger.info("Credits consumed based on actual tokens", tokens=tokens_used, user_id=user_id)
-        else:
-            credits_service.consume(user_id, credits_service.SCAN_COST, is_anonymous=is_anonymous)
-            logger.info("Credits consumed using fixed cost (tokens not available)", user_id=user_id)
+        # 6. Consommer les crédits après succès - coût FIXE (5 gemmes) pas basé sur tokens
+        credits_service.consume(user_id, credits_service.SCAN_COST, is_anonymous=is_anonymous)
+        logger.info("Credits consumed (fixed cost)", cost=credits_service.SCAN_COST, user_id=user_id)
 
         # 7. Build response - Notice pharmaceutique complète
         # Helper function pour convertir les listes en strings

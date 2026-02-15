@@ -214,8 +214,8 @@ export function LiveCameraScanner({ onScanComplete, onClose }: LiveCameraScanner
       return null;
     }
 
-    // Définir la taille du canvas (limiter pour mobile)
-    const maxSize = 1024;
+    // Taille réduite pour requêtes plus rapides et moins de mémoire backend
+    const maxSize = 640;
     let width = video.videoWidth;
     let height = video.videoHeight;
     
@@ -228,14 +228,10 @@ export function LiveCameraScanner({ onScanComplete, onClose }: LiveCameraScanner
     canvas.width = width;
     canvas.height = height;
 
-    // Dessiner la frame vidéo sur le canvas
     context.drawImage(video, 0, 0, width, height);
 
-    // Convertir en Blob avec Promise
     return new Promise<Blob | null>((resolve) => {
-      canvas.toBlob((blob) => {
-        resolve(blob);
-      }, 'image/jpeg', 0.8); // Qualité réduite pour mobile
+      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.55);
     });
   }, []);
 

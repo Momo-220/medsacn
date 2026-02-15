@@ -53,7 +53,7 @@ FIREBASE_PROJECT_ID: medscan-915d3
 DB_INSTANCE_CONNECTION_NAME: "medscan-projet:us-central1:medscan"
 DB_PORT: "5432"
 DB_NAME: mediscan
-DB_USER: mediscan_user
+DB_USER: medscan_user
 DB_PASSWORD: $(if ($env:DB_PASSWORD) { $env:DB_PASSWORD } else { "PLACEHOLDER" })
 GEMINI_API_KEY: $(if ($env:GEMINI_API_KEY) { $env:GEMINI_API_KEY } else { "PLACEHOLDER" })
 GEMINI_MODEL_VISION: gemini-2.5-flash
@@ -61,16 +61,18 @@ GEMINI_MODEL_CHAT: gemini-2.5-flash
 JWT_SECRET_KEY: $(if ($env:JWT_SECRET_KEY) { $env:JWT_SECRET_KEY } else { "CHANGE-MOI-" + [guid]::NewGuid().ToString("N").Substring(0,24) })
 ADMIN_EMAIL: seinimomo1@gmail.com
 ADMIN_PASSWORD: $(if ($env:ADMIN_PASSWORD) { $env:ADMIN_PASSWORD } else { "PLACEHOLDER" })
-CORS_ORIGINS: "https://mediscan.app,https://www.mediscan.app,https://*.vercel.app,http://localhost:3002"
+CORS_ORIGINS: "https://mediscan.app,https://www.mediscan.app,https://medscan-eight.vercel.app,http://localhost:3002"
 "@
 $envFile = Join-Path $env:TEMP "mediscan-env.yaml"
 $envYaml | Out-File -FilePath $envFile -Encoding utf8
 
 # Cloud SQL: medscan-projet:us-central1:medscan
+# Memory 1Gi pour scan caméra (images + Gemini)
 gcloud run deploy mediscan-api `
     --image gcr.io/$ProjectId/mediscan-api:latest `
     --region $Region `
     --platform managed `
+    --memory 1Gi `
     --allow-unauthenticated `
     --add-cloudsql-instances "medscan-projet:us-central1:medscan" `
     --env-vars-file $envFile

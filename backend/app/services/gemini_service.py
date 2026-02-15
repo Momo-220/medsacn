@@ -440,7 +440,7 @@ class GeminiService:
                 "temperature": 0.3,
                 "top_p": 0.9,
                 "top_k": 20,
-                "max_output_tokens": 4096,
+                "max_output_tokens": 2048,
             }
             
             try:
@@ -697,8 +697,8 @@ class GeminiService:
             if image.width < 100 or image.height < 100:
                 raise ImageProcessingError("Image is too small (minimum 100x100 pixels)")
             
-            # Resize if too large (optimize for speed - reduced to 1024px)
-            max_dimension = 1024  # Reduced for faster API calls
+            # Resize if too large (optimize for speed and memory)
+            max_dimension = 768
             if max(image.width, image.height) > max_dimension:
                 ratio = max_dimension / max(image.width, image.height)
                 new_size = (int(image.width * ratio), int(image.height * ratio))
