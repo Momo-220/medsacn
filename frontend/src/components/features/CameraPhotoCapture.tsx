@@ -103,11 +103,12 @@ export function CameraPhotoCapture({ onCapture, onClose }: CameraPhotoCapturePro
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black">
-      <div className="relative flex-1 flex flex-col">
+    <div className="fixed inset-0 z-50 flex flex-col bg-black min-h-[100dvh] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+      <div className="relative flex-1 flex flex-col min-h-0">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/50 text-white"
+          aria-label={language === 'fr' ? 'Fermer' : 'Close'}
         >
           <X className="w-6 h-6" />
         </button>
@@ -123,22 +124,29 @@ export function CameraPhotoCapture({ onCapture, onClose }: CameraPhotoCapturePro
               autoPlay
               playsInline
               muted
-              className="w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover"
             />
             <canvas ref={canvasRef} className="hidden" />
 
-            <div className="absolute bottom-8 left-0 right-0 flex justify-center">
+            {/* Cadre viewfinder - zone de cadrage */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-[85%] max-w-[320px] aspect-[3/4] rounded-2xl border-4 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.4)]" />
+            </div>
+
+            {/* Bouton centré au-dessus de la barre de navigation */}
+            <div className="absolute left-0 right-0 flex justify-center bottom-[calc(6rem+env(safe-area-inset-bottom))]">
               <button
                 onClick={takePhoto}
                 disabled={!cameraReady}
-                className="w-20 h-20 rounded-full bg-white border-4 border-primary flex items-center justify-center shadow-lg disabled:opacity-50"
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white border-4 border-primary flex items-center justify-center shadow-lg disabled:opacity-50 active:scale-95 transition-transform"
+                aria-label={language === 'fr' ? 'Prendre la photo' : 'Take photo'}
               >
-                <Camera className="w-10 h-10 text-primary" strokeWidth={2.5} />
+                <Camera className="w-10 h-10 sm:w-12 sm:h-12 text-primary" strokeWidth={2.5} />
               </button>
             </div>
 
-            <p className="absolute bottom-24 left-0 right-0 text-center text-white/90 text-sm">
-              {language === 'fr' ? 'Prenez la photo du médicament' : 'Take a photo of the medication'}
+            <p className="absolute left-0 right-0 text-center text-white/90 text-sm bottom-[calc(8rem+env(safe-area-inset-bottom))]">
+              {language === 'fr' ? 'Cadrez le médicament puis prenez la photo' : 'Frame the medication then take the photo'}
             </p>
           </>
         )}

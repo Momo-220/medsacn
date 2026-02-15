@@ -403,12 +403,12 @@ class APIClient {
   }
 
   // Credits endpoints
-  async getCredits(): Promise<{ credits: number }> {
+  async getCredits(): Promise<{ credits: number; next_reset_at?: string }> {
     const response = await this.client.get('/credits');
     return response.data;
   }
 
-  async addCredits(amount: number): Promise<{ credits: number }> {
+  async addCredits(amount: number): Promise<{ credits: number; next_reset_at?: string }> {
     const response = await this.client.post('/credits/add', { amount });
     return response.data;
   }

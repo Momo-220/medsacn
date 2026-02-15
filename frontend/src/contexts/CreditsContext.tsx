@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 
 interface CreditsContextType {
   credits: number;
+  nextResetAt: string | null;
   loading: boolean;
   refreshCredits: () => Promise<void>;
   addCredits: (amount: number) => Promise<void>;
@@ -16,13 +17,15 @@ const CreditsContext = createContext<CreditsContextType | undefined>(undefined);
 export function CreditsProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [credits, setCredits] = useState<number>(0);
+  const [nextResetAt, setNextResetAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refreshCredits = useCallback(async () => {
     try {
       setLoading(true);
       const response = await apiClient.getCredits();
-      setCredits(response.credits || 0);
+      setCredits(response.credits ?? 0);
+      setNextResetAt(response.next_reset_at ?? null);
     } catch (error: any) {
       // L'erreur sera automatiquement affichée via l'intercepteur API
       console.error('Erreur lors du chargement des crédits:', error);
@@ -66,7 +69,7 @@ export function CreditsProvider({ children }: { children: React.ReactNode }) {
   }, [user, refreshCredits]);
 
   return (
-    <CreditsContext.Provider value={{ credits, loading, refreshCredits, addCredits }}>
+    <CreditsContext.Provider value={{ credits, nextResetAt, loading, refreshCredits, addCredits }}>
       {children}
     </CreditsContext.Provider>
   );

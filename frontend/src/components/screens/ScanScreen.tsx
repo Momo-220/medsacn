@@ -112,7 +112,11 @@ export function ScanScreen() {
 
   const handleCameraCapture = (file: File) => {
     setShowCameraCapture(false);
-    handleFileSelect(file);
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    setError(null);
+    setStep('analyzing');
+    handleScan(file);
   };
 
   if (showCameraCapture) {

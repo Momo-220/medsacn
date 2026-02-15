@@ -238,6 +238,7 @@ class CreditsInfo(BaseModel):
 class CreditsResponse(BaseModel):
     """Response with current credits only (for frontend)"""
     credits: int
+    next_reset_at: str | None = None  # ISO datetime UTC, prochain renouvellement des gemmes
 
 
 class CreditsUpdateRequest(BaseModel):

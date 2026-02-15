@@ -71,6 +71,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://storage.googleapis.com" />
         <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="Permissions-Policy" content="camera=(self), microphone=()" />
       </head>
       <body className="antialiased bg-background dark:bg-gray-900 text-text-primary dark:text-gray-100 transition-colors">
         <Providers>

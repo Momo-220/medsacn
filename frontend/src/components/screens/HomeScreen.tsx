@@ -5,7 +5,6 @@ import { User, Gem, Pill } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useNavigation } from '@/lib/navigation/NavigationContext';
 import { useCredits } from '@/contexts/CreditsContext';
-import { CreditsModal } from '@/components/ui/CreditsModal';
 import { HealthDashboard } from '@/components/features/HealthDashboard';
 import { MedicationReminders } from '@/components/features/MedicationReminders';
 import { HealthTipsCard } from '@/components/features/HealthTipsCard';
@@ -61,20 +60,31 @@ function ScanItem({ medication, type, time, timeDetail, image }: ScanItemProps) 
   );
 }
 
+function formatNextReset(nextResetAt: string | null, language: string): string {
+  if (!nextResetAt) return language === 'fr' ? 'Demain à 00h00' : 'Tomorrow at 00:00';
+  try {
+    const d = new Date(nextResetAt);
+    const isTomorrow = d.getDate() !== new Date().getDate() || d.getMonth() !== new Date().getMonth();
+    if (language === 'fr') {
+      return isTomorrow
+        ? `Renouvelé demain à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`
+        : `Renouvelé aujourd'hui à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+    }
+    return isTomorrow
+      ? `Renewed tomorrow at ${d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
+      : `Renewed today at ${d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+  } catch {
+    return language === 'fr' ? 'Renouvelé demain à 00h00' : 'Renewed tomorrow at 00:00';
+  }
+}
+
 export function HomeScreen() {
   const { user } = useAuth();
   const { navigateTo } = useNavigation();
-  const { credits, loading } = useCredits();
+  const { credits, nextResetAt, loading } = useCredits();
   const { t, language } = useLanguage();
-  const [showCreditsModal, setShowCreditsModal] = useState(false);
+  const [showCreditsPopover, setShowCreditsPopover] = useState(false);
   const [localName, setLocalName] = useState<string | null>(null);
-
-  // Écouter l'événement pour ouvrir le modal
-  useEffect(() => {
-    const handleOpenModal = () => setShowCreditsModal(true);
-    window.addEventListener('openCreditsModal', handleOpenModal);
-    return () => window.removeEventListener('openCreditsModal', handleOpenModal);
-  }, []);
 
   // Charger le prénom stocké localement (mode essai)
   useEffect(() => {
@@ -152,19 +162,32 @@ export function HomeScreen() {
               {t('howDoYouFeel')}
             </p>
           </div>
-          {/* Badge gemmes - espacement clair avant l'avatar */}
+          {/* Badge gemmes - clic affiche date de renouvellement */}
           {!loading && (
-            <button
-              onClick={() => {
-                const event = new CustomEvent('openCreditsModal');
-                window.dispatchEvent(event);
-              }}
-              className="flex-shrink-0 flex items-center gap-1.5 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 px-3 py-2 sm:px-4 sm:py-2 rounded-full border border-yellow-400/30 hover:from-yellow-400/30 hover:to-orange-500/30 transition-colors dark:border-yellow-500/50 dark:from-yellow-500/20 dark:to-orange-600/20"
-              title={t('clickToAddCredits')}
-            >
-              <Gem className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0" strokeWidth={2.5} />
-              <span className="text-sm font-bold text-yellow-700 dark:text-yellow-300 tabular-nums">{credits}</span>
-            </button>
+            <div className="relative flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowCreditsPopover((v) => !v)}
+                className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 px-3 py-2 sm:px-4 sm:py-2 rounded-full border border-yellow-400/30 hover:from-yellow-400/30 hover:to-orange-500/30 transition-colors dark:border-yellow-500/50 dark:from-yellow-500/20 dark:to-orange-600/20"
+                title={language === 'fr' ? 'Voir le renouvellement des gemmes' : 'See gem renewal'}
+              >
+                <Gem className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0" strokeWidth={2.5} />
+                <span className="text-sm font-bold text-yellow-700 dark:text-yellow-300 tabular-nums">{credits}</span>
+              </button>
+              {showCreditsPopover && (
+                <>
+                  <div className="fixed inset-0 z-40" aria-hidden onClick={() => setShowCreditsPopover(false)} />
+                  <div className="absolute right-0 top-full mt-2 z-50 min-w-[220px] py-3 px-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-600">
+                    <p className="text-xs text-text-secondary dark:text-gray-400">
+                      {language === 'fr' ? 'Prochain renouvellement' : 'Next renewal'}
+                    </p>
+                    <p className="text-sm font-semibold text-text-primary dark:text-gray-100 mt-0.5">
+                      {formatNextReset(nextResetAt, language)}
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
           )}
           {/* Avatar / Profil */}
           <button 
@@ -234,13 +257,6 @@ export function HomeScreen() {
         </div>
       </div>
 
-      {/* Credits Modal */}
-      <CreditsModal
-        isOpen={showCreditsModal}
-        onClose={() => setShowCreditsModal(false)}
-        action="scan"
-        cost={5}
-      />
     </div>
   );
 }
