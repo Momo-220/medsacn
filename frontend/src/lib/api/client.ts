@@ -68,7 +68,7 @@ class APIClient {
     sessionStorage.setItem('auth_token', token);
   }
 
-  // Scan endpoints
+  // Scan endpoints (timeout 60s: Cloud Run cold start + Gemini peuvent prendre du temps)
   async scanMedication(file: File, language: string = 'fr'): Promise<any> {
     const formData = new FormData();
     formData.append('file', file);
@@ -77,6 +77,7 @@ class APIClient {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 60000,
     });
 
     return response.data;

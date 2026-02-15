@@ -38,6 +38,7 @@ async def lifespan(app: FastAPI):
     # Initialize services
     from app.services.firebase_service import firebase_service
     from app.services.gemini_service import gemini_service
+    from app.services.storage_service import storage_service
     from app.models.database import init_db
     
     # Ensure database tables exist (idempotent)
@@ -48,6 +49,10 @@ async def lifespan(app: FastAPI):
 
     await firebase_service.initialize()
     await gemini_service.initialize()
+    try:
+        await storage_service.initialize()
+    except Exception as e:
+        logger.warning("Storage init failed (scan will work, images may not persist)", error=str(e))
     
     logger.info("AI MediScan Ready - Creating emotions, not just apps")
     

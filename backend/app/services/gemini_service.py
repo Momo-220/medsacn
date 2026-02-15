@@ -62,7 +62,8 @@ REQUIRED FIELDS (MUST ALWAYS BE PRESENT):
 - "category": Identify the main therapeutic category.
 
 IMPORTANT:
-- Respond ONLY in valid JSON, without text before or after
+- Respond ONLY in valid JSON, without text before or after. NEVER add explanatory text outside JSON.
+- If you cannot clearly identify the medication, still return valid JSON with "medication_name": "Medication not identified", "confidence": "low".
 - Respond only in English for all text fields
 """
     elif user_language == "ar":
@@ -173,7 +174,8 @@ CHAMPS OBLIGATOIRES:
 - "category" : Identifie la catégorie thérapeutique principale.
 
 IMPORTANT: 
-- Réponds UNIQUEMENT en JSON valide, sans texte avant ou après
+- Réponds UNIQUEMENT en JSON valide, sans texte avant ou après. JAMAIS de texte explicatif en dehors du JSON.
+- Si tu ne peux pas identifier clairement le médicament, retourne quand même un JSON valide avec "medication_name": "Médicament non identifié", "confidence": "low", et remplis les champs visibles (indications, etc.) si tu peux.
 - Réponds uniquement en français pour tous les champs textuels
 """
 
@@ -366,10 +368,13 @@ class GeminiService:
                 self.chat_model = None
                 self._initialized = False
             
+            api_key = settings.GEMINI_API_KEY or ""
+            if not api_key or "PLACEHOLDER" in api_key.upper() or len(api_key) < 20:
+                logger.error("GEMINI_API_KEY invalide ou non configurée (PLACEHOLDER?) - Le scan échouera en prod!")
             logger.info("Configuring Gemini with API key", 
-                       key_length=len(settings.GEMINI_API_KEY) if settings.GEMINI_API_KEY else 0,
-                       key_preview=settings.GEMINI_API_KEY[:10] + "..." if settings.GEMINI_API_KEY and len(settings.GEMINI_API_KEY) > 10 else "N/A")
-            genai.configure(api_key=settings.GEMINI_API_KEY)
+                       key_length=len(api_key),
+                       key_preview=api_key[:10] + "..." if len(api_key) > 10 else "N/A")
+            genai.configure(api_key=api_key)
             
             logger.info(f" Initializing Gemini models: Vision={settings.GEMINI_MODEL_VISION}, Chat={settings.GEMINI_MODEL_CHAT}")
             
@@ -431,7 +436,9 @@ class GeminiService:
             image = self._process_image(image_bytes)
             
             # Prepare prompt with user language
-            prompt = get_vision_system_prompt(user_language) + "\n\nAnalyze this medication image:"
+            prompt = get_vision_system_prompt(user_language) + """
+
+Analyze this medication image. Return ONLY a valid JSON object - no explanations, no markdown, no text before or after. Start directly with { and end with }."""
             
             logger.info("Sending request to Gemini API", model=settings.GEMINI_MODEL_VISION)
             
@@ -697,8 +704,8 @@ class GeminiService:
             if image.width < 100 or image.height < 100:
                 raise ImageProcessingError("Image is too small (minimum 100x100 pixels)")
             
-            # Resize if too large (optimize for speed and memory)
-            max_dimension = 768
+            # Resize if too large - 1024px pour garder la lisibilité du texte sur les boîtes
+            max_dimension = 1024
             if max(image.width, image.height) > max_dimension:
                 ratio = max_dimension / max(image.width, image.height)
                 new_size = (int(image.width * ratio), int(image.height * ratio))
@@ -761,9 +768,11 @@ class GeminiService:
             # Parse JSON
             result = json.loads(json_text)
             
-            # Ensure required fields with proper defaults
-            if "medication_name" not in result or not result["medication_name"]:
-                result["medication_name"] = "Médicament non identifié"
+            # Ensure required fields - utiliser generic_name ou active_ingredient si medication_name vide
+            med_name = (result.get("medication_name") or "").strip()
+            if not med_name:
+                fallback = (result.get("generic_name") or result.get("active_ingredient") or "").strip()
+                result["medication_name"] = fallback if fallback else "Médicament non identifié"
             
             if "disclaimer" not in result:
                 result["disclaimer"] = "Cette analyse est à titre informatif uniquement. Consultez toujours votre médecin ou pharmacien avant de prendre un médicament."

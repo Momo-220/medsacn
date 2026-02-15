@@ -38,6 +38,7 @@ export function AuthScreen() {
     const code = err?.code || '';
     if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') return t('authErrorInvalid');
     if (code === 'auth/email-already-in-use') return t('authErrorEmailUsed');
+    if (code === 'auth/mediscan-email-exists-signin') return t('authErrorEmailExistsSignIn');
     if (code === 'auth/weak-password') return t('authErrorWeakPassword');
     if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return t('authErrorPopupClosed');
     if (code === 'auth/popup-blocked') return t('authErrorPopupBlocked');

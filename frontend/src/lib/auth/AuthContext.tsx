@@ -94,12 +94,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const auth = authRef.current;
     const mod = authModuleRef.current;
     if (!auth || !mod) throw new Error('Auth not initialized');
-    const credential = await mod.createUserWithEmailAndPassword(auth, email, password);
-    if (displayName) {
-      await mod.updateProfile(credential.user, { displayName });
+    try {
+      const credential = await mod.createUserWithEmailAndPassword(auth, email, password);
+      if (displayName) {
+        await mod.updateProfile(credential.user, { displayName });
+      }
+      const token = await credential.user.getIdToken();
+      apiClient.setAuthToken(token);
+    } catch (err: any) {
+      // Email déjà inscrit → se connecter à la place (retrouve les anciennes données)
+      if (err?.code === 'auth/email-already-in-use') {
+        try {
+          const cred = await mod.signInWithEmailAndPassword(auth, email, password);
+          const token = await cred.user.getIdToken();
+          apiClient.setAuthToken(token);
+          return;
+        } catch (signInErr: any) {
+          // Mot de passe incorrect pour ce compte existant
+          throw Object.assign(new Error('auth/mediscan-email-exists-signin'), { code: 'auth/mediscan-email-exists-signin' });
+        }
+      }
+      throw err;
     }
-    const token = await credential.user.getIdToken();
-    apiClient.setAuthToken(token);
   }, []);
 
   const updateProfile = useCallback(async (updates: { displayName?: string; photoURL?: string }) => {

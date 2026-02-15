@@ -192,20 +192,17 @@ async def scan_medication(
                     detail=f"Impossible d'analyser l'image: {error_str}"
                 )
         
-        # 3. Upload image to GCS (optional in dev mode)
-        logger.info("Uploading image to storage", user_id=user_id)
+        # 3. Upload image to storage (non-bloquant: si échec, on continue sans image_url)
+        image_url = None
         try:
+            await storage_service.initialize()
             image_url = await storage_service.upload_image(
                 image_bytes=image_bytes,
                 user_id=user_id,
                 content_type=file.content_type or "image/jpeg",
             )
         except Exception as e:
-            logger.error("Image upload failed", error=str(e))
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Échec du téléchargement de l'image. Veuillez réessayer."
-            )
+            logger.warning("Image upload failed (continuing without image URL)", error=str(e), user_id=user_id)
         
         # 4. Build response - Notice pharmaceutique complète
         # CRITIQUE : S'assurer que packaging_language et category ont TOUJOURS des valeurs
