@@ -4,6 +4,7 @@ Vision analysis and conversational AI with medical safety
 """
 
 import google.generativeai as genai
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from typing import Dict, Any, List, Optional, AsyncGenerator
 from PIL import Image
 import io
@@ -16,12 +17,12 @@ from app.core.exceptions import AIServiceError, ImageProcessingError
 logger = structlog.get_logger()
 
 
-# Medical Safety Settings
+# Autoriser le contenu médical (médicaments) - sans ça les images peuvent être bloquées
 MEDICAL_SAFETY_SETTINGS = {
-    "HARM_CATEGORY_HARASSMENT": "BLOCK_NONE",
-    "HARM_CATEGORY_HATE_SPEECH": "BLOCK_NONE",
-    "HARM_CATEGORY_SEXUALLY_EXPLICIT": "BLOCK_MEDIUM_AND_ABOVE",
-    "HARM_CATEGORY_DANGEROUS_CONTENT": "BLOCK_NONE",  # Allow medical content
+    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
 }
 
 
@@ -63,6 +64,7 @@ REQUIRED FIELDS (MUST ALWAYS BE PRESENT):
 
 IMPORTANT:
 - Respond ONLY in valid JSON, without text before or after. NEVER add explanatory text outside JSON.
+- Use \\n for line breaks in string values (indications, posology, etc.), never actual newlines.
 - If you cannot clearly identify the medication, still return valid JSON with "medication_name": "Medication not identified", "confidence": "low".
 - Respond only in English for all text fields
 """
@@ -175,7 +177,10 @@ CHAMPS OBLIGATOIRES:
 
 IMPORTANT: 
 - Réponds UNIQUEMENT en JSON valide, sans texte avant ou après. JAMAIS de texte explicatif en dehors du JSON.
-- Si tu ne peux pas identifier clairement le médicament, retourne quand même un JSON valide avec "medication_name": "Médicament non identifié", "confidence": "low", et remplis les champs visibles (indications, etc.) si tu peux.
+- Utilise \\n pour les retours à la ligne dans les valeurs (indications, posology, etc.), jamais de vrai saut de ligne.
+- Remplis TOUS les champs. Pour les infos non visibles sur l'emballage, mets "Voir notice" ou "Consulter le médecin" au lieu de laisser vide.
+- indications, posology, contraindications, side_effects, interactions, overdose, storage, precautions, additional_info doivent TOUJOURS avoir une valeur.
+- Si tu ne peux pas identifier clairement le médicament, retourne quand même un JSON valide avec "medication_name": "Médicament non identifié", "confidence": "low".
 - Réponds uniquement en français pour tous les champs textuels
 """
 
@@ -447,13 +452,14 @@ Analyze this medication image. Return ONLY a valid JSON object - no explanations
                 "temperature": 0.3,
                 "top_p": 0.9,
                 "top_k": 20,
-                "max_output_tokens": 2048,
+                "max_output_tokens": 4096,
             }
             
             try:
                 response = await self.vision_model.generate_content_async(
                     [prompt, image],
                     generation_config=generation_config,
+                    safety_settings=MEDICAL_SAFETY_SETTINGS,
                 )
             except Exception as e:
                 error_str = str(e)
@@ -461,15 +467,8 @@ Analyze this medication image. Return ONLY a valid JSON object - no explanations
                 
                 # Détecter spécifiquement l'erreur 429 (quota dépassé)
                 if "429" in error_str or "quota" in error_str.lower() or "exceeded" in error_str.lower():
-                    # Extraire le délai de retry si disponible
-                    retry_delay = 60
-                    if "retry_delay" in error_str or "seconds" in error_str:
-                        import re
-                        match = re.search(r'seconds?[:\s]+(\d+)', error_str)
-                        if match:
-                            retry_delay = int(match.group(1))
-                    
-                    error_msg = f"Quota Gemini dépassé. Réessayez dans {retry_delay} secondes. Vérifiez votre quota Gemini API dans Google Cloud Console."
+                    # Message utilisateur compréhensible (pas de détails techniques)
+                    error_msg = "Service temporairement surchargé. Réessayez dans quelques minutes."
                     logger.error("Gemini quota exceeded during image analysis", 
                                 error=error_str, 
                                 error_type=error_type,
@@ -500,18 +499,41 @@ Analyze this medication image. Return ONLY a valid JSON object - no explanations
                 logger.error("Empty response object from Gemini", response_type=type(response).__name__)
                 raise AIServiceError("Gemini returned empty response object")
             
-            # Vérifier si response a un attribut text
-            response_text = None
-            if hasattr(response, 'text') and response.text:
-                response_text = response.text
-            elif hasattr(response, 'parts') and response.parts:
-                response_text = "".join(part.text for part in response.parts if hasattr(part, 'text'))
+            # Vérifier si le contenu a été bloqué (filtres de sécurité)
+            if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
+                pf = response.prompt_feedback
+                if hasattr(pf, 'block_reason') and pf.block_reason and str(pf.block_reason) != "BLOCK_REASON_UNSPECIFIED":
+                    reason = str(getattr(pf, 'block_reason', 'UNKNOWN'))
+                    logger.error("Gemini blocked prompt (safety)", block_reason=reason)
+                    raise AIServiceError(f"L'image a été bloquée par les filtres de sécurité ({reason}). Essayez une photo plus claire du médicament.")
             
-            if not response_text:
+            if response.candidates and len(response.candidates) > 0:
+                cand = response.candidates[0]
+                if hasattr(cand, 'finish_reason') and cand.finish_reason and "SAFETY" in str(cand.finish_reason).upper():
+                    logger.error("Gemini blocked response (safety)", finish_reason=str(cand.finish_reason))
+                    raise AIServiceError("L'analyse a été bloquée. Veuillez prendre une photo plus nette du médicament.")
+            
+            # Extraire le texte de la réponse
+            response_text = None
+            try:
+                if hasattr(response, 'text') and response.text:
+                    response_text = response.text
+                elif hasattr(response, 'parts') and response.parts:
+                    response_text = "".join(part.text for part in response.parts if hasattr(part, 'text') and part.text)
+                elif response.candidates and len(response.candidates) > 0:
+                    parts = getattr(response.candidates[0], 'content', None)
+                    if parts and hasattr(parts, 'parts'):
+                        response_text = "".join(p.text for p in parts.parts if hasattr(p, 'text') and p.text)
+            except Exception as parse_err:
+                logger.warning("Could not get response.text, trying parts", error=str(parse_err))
+                response_text = None
+            
+            if not response_text or not response_text.strip():
                 logger.error("Empty response text from Gemini", 
                            response_type=type(response).__name__,
-                           response_attrs=[attr for attr in dir(response) if not attr.startswith('_')])
-                raise AIServiceError("Gemini returned empty response text")
+                           has_candidates=bool(response.candidates),
+                           candidates_count=len(response.candidates) if response.candidates else 0)
+                raise AIServiceError("Gemini n'a pas pu analyser l'image. Réessayez avec une photo plus claire du médicament.")
             
             logger.info("Received response from Gemini", 
                        response_length=len(response_text),
@@ -519,6 +541,12 @@ Analyze this medication image. Return ONLY a valid JSON object - no explanations
             
             # Parse response
             result = self._parse_vision_response(response_text)
+            
+            # DEBUG: Si "Médicament non identifié", logger la réponse brute pour diagnostic
+            med = result.get("medication_name", "")
+            if not med or "non identifié" in str(med).lower() or "not identified" in str(med).lower():
+                logger.warning("SCAN_DEBUG: Médicament non identifié - réponse Gemini brute (800 premiers car):", 
+                              raw_response=response_text[:800] if response_text else "VIDE")
             
             # Log critical fields for debugging
             # Récupérer les tokens utilisés pour le calcul de coût
@@ -766,13 +794,38 @@ Analyze this medication image. Return ONLY a valid JSON object - no explanations
                         json_text = json_text[start_idx:end_idx]
             
             # Parse JSON
-            result = json.loads(json_text)
+            try:
+                result = json.loads(json_text)
+            except json.JSONDecodeError:
+                # Fallback: JSON invalide (ex: newlines non échappés dans posology) -> extraction regex
+                result = {}
+                raw = response_text
+                # Champs sur une ligne (évite d'avaler du texte après un string tronqué)
+                for key in ["medication_name", "generic_name", "dosage", "form", "manufacturer",
+                            "active_ingredient", "category", "confidence", "packaging_language"]:
+                    m = re.search(r'"' + re.escape(key) + r'"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)"', raw)
+                    if not m:
+                        m = re.search(r'"' + re.escape(key) + r'"\s*:\s*"([^"\n]*)"', raw)
+                    if m:
+                        val = m.group(1).replace("\\n", "\n").replace('\\"', '"').strip()
+                        result[key] = val if val and val.lower() not in ("non visible", "n/a") else None
+                if not result.get("medication_name") and result.get("generic_name"):
+                    result["medication_name"] = result["generic_name"]
             
-            # Ensure required fields - utiliser generic_name ou active_ingredient si medication_name vide
+            # Ensure required fields - chercher le nom dans tous les champs possibles
             med_name = (result.get("medication_name") or "").strip()
             if not med_name:
-                fallback = (result.get("generic_name") or result.get("active_ingredient") or "").strip()
-                result["medication_name"] = fallback if fallback else "Médicament non identifié"
+                fallback = (
+                    (result.get("generic_name") or "").strip() or
+                    (result.get("active_ingredient") or "").strip() or
+                    (result.get("brand_name") or "").strip() or
+                    (result.get("manufacturer") or "").strip()
+                )
+                # Éviter les valeurs trop génériques
+                if fallback and len(fallback) > 2 and fallback.lower() not in ("unknown", "n/a", "na", "null"):
+                    result["medication_name"] = fallback
+                else:
+                    result["medication_name"] = "Médicament non identifié"
             
             if "disclaimer" not in result:
                 result["disclaimer"] = "Cette analyse est à titre informatif uniquement. Consultez toujours votre médecin ou pharmacien avant de prendre un médicament."
@@ -783,6 +836,25 @@ Analyze this medication image. Return ONLY a valid JSON object - no explanations
                     result[list_field] = []
                 elif not isinstance(result[list_field], list):
                     result[list_field] = [result[list_field]] if result[list_field] else []
+            
+            # Champs texte : valeurs par défaut si vides
+            defaults = {
+                "indications": "Voir notice d'utilisation.",
+                "posology": "Voir posologie sur la notice.",
+                "contraindications": result.get("contraindications") or ["Consulter la notice ou votre médecin."],
+                "precautions": "Voir précautions sur la notice.",
+                "side_effects": result.get("side_effects") or ["Voir liste complète sur la notice."],
+                "interactions": result.get("interactions") or ["Consulter votre médecin pour les interactions."],
+                "overdose": "En cas de surdosage, contactez un médecin ou le centre antipoison.",
+                "storage": "Conserver dans un endroit sec à température ambiante. Voir notice.",
+                "additional_info": "Consultez la notice complète ou votre pharmacien.",
+            }
+            for key, default in defaults.items():
+                if key in ["contraindications", "side_effects", "interactions"]:
+                    if not result.get(key):
+                        result[key] = default if isinstance(default, list) else [default]
+                elif not result.get(key) or (isinstance(result[key], str) and not result[key].strip()):
+                    result[key] = default
             
             # Ensure confidence level
             if "confidence" not in result:
@@ -840,7 +912,7 @@ Analyze this medication image. Return ONLY a valid JSON object - no explanations
             return result
             
         except json.JSONDecodeError as e:
-            logger.error("Failed to parse vision response as JSON", error=str(e), response_preview=response_text[:500])
+            logger.error("SCAN_DEBUG: JSON parse failed - réponse brute:", error=str(e), response_preview=response_text[:800] if response_text else "VIDE")
             # Return structured error response en français
             return {
                 "medication_name": "Médicament non identifié",

@@ -5,6 +5,7 @@ Upload and analyze medication images
 
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, status, Query
 from typing import Dict, Any
+from datetime import datetime
 import structlog
 
 from app.models.schemas import ScanResponse
@@ -13,6 +14,7 @@ from app.services.gemini_service import gemini_service
 from app.services.storage_service import storage_service
 from app.services.scan_history_service import scan_history_service
 from app.core.exceptions import ImageProcessingError, AIServiceError
+from app.core.gemini_quota import check_and_increment as check_gemini_quota
 from app.services.credits_service import credits_service
 
 logger = structlog.get_logger()
@@ -161,7 +163,15 @@ async def scan_medication(
             # Réinitialiser complètement pour prendre en compte une nouvelle clé API
             await gemini_service.initialize(force_reinit=True)
         
-        # 2. Analyze image with Gemini AI - OBLIGATOIRE, pas de fallback
+        # 2. Vérifier la limite globale quotidienne (éviter dépassement quota Gemini)
+        if not check_gemini_quota():
+            logger.warning("Daily scan limit reached, rejecting request", user_id=user_id)
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Service temporairement surchargé. Réessayez demain.",
+            )
+        
+        # 3. Analyze image with Gemini AI - OBLIGATOIRE, pas de fallback
         logger.info("Analyzing medication image with AI", user_id=user_id)
         
         try:
@@ -179,11 +189,11 @@ async def scan_medication(
         except AIServiceError as e:
             # Gérer spécifiquement les erreurs Gemini (quota, etc.)
             error_str = str(e)
-            if "quota" in error_str.lower() or "429" in error_str:
+            if "quota" in error_str.lower() or "429" in error_str or "surchargé" in error_str.lower():
                 logger.error("Gemini quota exceeded during scan", error=error_str)
                 raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail=f"Quota Gemini dépassé. {error_str} Veuillez réessayer plus tard ou vérifier votre quota dans Google Cloud Console."
+                    detail="Service temporairement surchargé. Réessayez dans quelques minutes."
                 )
             else:
                 logger.error("Gemini analysis failed", error=error_str)
@@ -325,17 +335,27 @@ async def scan_medication(
                 form=analysis.get("form"),
                 category=category,
                 active_ingredient=analysis.get("active_ingredient"),
+                excipients=analysis.get("excipients"),
                 indications=analysis.get("indications"),
                 contraindications=contraindications_str,
                 side_effects=side_effects_str,
                 dosage_instructions=dosage_instructions_str,
+                posology=analysis.get("posology") or analysis.get("usage_instructions"),
                 precautions=analysis.get("precautions"),
                 interactions=interactions_str,
+                overdose=analysis.get("overdose"),
                 storage=analysis.get("storage"),
+                additional_info=analysis.get("additional_info"),
                 manufacturer=analysis.get("manufacturer"),
+                lot_number=analysis.get("lot_number"),
+                expiry_date=analysis.get("expiry_date"),
                 packaging_language=packaging_language,
                 image_url=image_url,
                 confidence=analysis.get("confidence", "low"),
+                disclaimer=analysis.get("disclaimer"),
+                warnings=analysis.get("warnings", []),
+                analysis_data=analysis,
+                analyzed_at=datetime.utcnow().isoformat(),
             )
         
         logger.info(
@@ -383,8 +403,8 @@ async def scan_medication(
         error_detail = f"Erreur lors de l'analyse: {error_str}"
         if "GEMINI_API_KEY" in error_str or "api key" in error_str.lower() or "n'est pas configurée" in error_str:
             error_detail = "Clé API Gemini non configurée ou invalide. Veuillez configurer GEMINI_API_KEY dans backend/.env et redémarrer le serveur."
-        elif "quota" in error_str.lower() or "429" in error_str:
-            error_detail = "Quota Gemini dépassé. Veuillez réessayer plus tard ou utiliser une nouvelle clé API."
+        elif "quota" in error_str.lower() or "429" in error_str or "surchargé" in error_str.lower():
+            error_detail = "Service temporairement surchargé. Réessayez dans quelques minutes."
         elif "invalid" in error_str.lower() and "api" in error_str.lower():
             error_detail = "Clé API Gemini invalide. Vérifiez que votre clé API est correcte dans backend/.env et redémarrez le serveur."
         

@@ -10,7 +10,7 @@ from datetime import datetime
 # === SCAN SCHEMAS ===
 
 class ScanResponse(BaseModel):
-    """Response schema for medication scan"""
+    """Response schema for medication scan - notice pharmaceutique complète"""
     scan_id: str
     medication_name: str
     generic_name: Optional[str] = None
@@ -19,18 +19,28 @@ class ScanResponse(BaseModel):
     form: Optional[str] = None
     category: str
     active_ingredient: Optional[str] = None
+    excipients: Optional[str] = None
     indications: Optional[str] = None
     contraindications: Optional[str] = None
     side_effects: Optional[str] = None
     dosage_instructions: Optional[str] = None
+    posology: Optional[str] = None
     precautions: Optional[str] = None
     interactions: Optional[str] = None
+    overdose: Optional[str] = None
     storage: Optional[str] = None
+    additional_info: Optional[str] = None
     manufacturer: Optional[str] = None
+    lot_number: Optional[str] = None
+    expiry_date: Optional[str] = None
     packaging_language: str
     image_url: Optional[str] = None
     confidence: str = "high"
+    disclaimer: Optional[str] = None
+    warnings: Optional[List[str]] = None
+    analysis_data: Optional[dict] = None
     scanned_at: datetime = Field(default_factory=datetime.utcnow)
+    analyzed_at: Optional[str] = None  # ISO string pour le frontend
 
 
 # === ASSISTANT SCHEMAS ===
