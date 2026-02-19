@@ -43,6 +43,13 @@ docker push gcr.io/$ProjectId/mediscan-api:latest
 if (-not $env:DB_PASSWORD) { Write-Host "ATTENTION: DB_PASSWORD non defini. Le service demarrera mais la DB echouera." -ForegroundColor Red }
 if (-not $env:GEMINI_API_KEY) { Write-Host "ATTENTION: GEMINI_API_KEY non defini." -ForegroundColor Red }
 
+# URL publique du backend (pour proxy images) - recupérée si service existe déjà
+$apiUrl = $env:API_PUBLIC_URL
+if (-not $apiUrl) {
+    $apiUrl = gcloud run services describe mediscan-api --region $Region --format="value(status.url)" 2>$null
+}
+if (-not $apiUrl) { Write-Host "ATTENTION: API_PUBLIC_URL non defini. Images en prod peuvent ne pas s'afficher. Apres 1er deploy, relancez le script." -ForegroundColor Yellow }
+
 # Fichier YAML pour eviter problemes de virgules (CORS_ORIGINS)
 $envYaml = @"
 ENVIRONMENT: production
@@ -62,6 +69,7 @@ JWT_SECRET_KEY: $(if ($env:JWT_SECRET_KEY) { $env:JWT_SECRET_KEY } else { "CHANG
 ADMIN_EMAIL: seinimomo1@gmail.com
 ADMIN_PASSWORD: $(if ($env:ADMIN_PASSWORD) { $env:ADMIN_PASSWORD } else { "PLACEHOLDER" })
 CORS_ORIGINS: "https://mediscan.app,https://www.mediscan.app,https://medscan-eight.vercel.app,http://localhost:3002"
+API_PUBLIC_URL: "$(if ($apiUrl) { $apiUrl } else { "" })"
 "@
 $envFile = Join-Path $env:TEMP "mediscan-env.yaml"
 $envYaml | Out-File -FilePath $envFile -Encoding utf8
@@ -88,5 +96,11 @@ Remove-Item $envFile -ErrorAction SilentlyContinue
 Write-Host "`n=== DEPLOI TERMINE ===" -ForegroundColor Green
 Write-Host "Configure les secrets dans la console Cloud Run :" -ForegroundColor Yellow
 Write-Host "  GEMINI_API_KEY, DB_PASSWORD, JWT_SECRET_KEY, ADMIN_PASSWORD"
-Write-Host "`nURL du service : " -NoNewline
-gcloud run services describe mediscan-api --region $Region --format="value(status.url)"
+$finalUrl = gcloud run services describe mediscan-api --region $Region --format="value(status.url)" 2>$null
+Write-Host "`nURL du service : $finalUrl"
+if (-not $apiUrl -and $finalUrl) {
+    Write-Host "`nIMPORTANT - Images en prod : API_PUBLIC_URL etait absent au deploy." -ForegroundColor Yellow
+    Write-Host "Pour que les images s'affichent, ajoutez dans Cloud Run > Variables :" -ForegroundColor Yellow
+    Write-Host "  API_PUBLIC_URL = $finalUrl" -ForegroundColor Cyan
+    Write-Host "Puis redeployez ou modifiez le service." -ForegroundColor Yellow
+}

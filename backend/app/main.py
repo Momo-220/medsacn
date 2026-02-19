@@ -39,13 +39,13 @@ async def lifespan(app: FastAPI):
     from app.services.firebase_service import firebase_service
     from app.services.gemini_service import gemini_service
     from app.services.storage_service import storage_service
-    from app.models.database import init_db
-    
-    # Ensure database tables exist (idempotent)
+    from app.db.mongodb import get_db
+
+    # MongoDB (init on first use)
     try:
-        init_db()
+        get_db()
     except Exception as e:
-        logger.error("Failed to initialize database", error=str(e))
+        logger.error("Failed to connect to MongoDB", error=str(e))
 
     await firebase_service.initialize()
     await gemini_service.initialize()

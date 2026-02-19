@@ -262,7 +262,7 @@ async def scan_medication(
         analysis["category"] = category
         
         # 5. Save to PostgreSQL (replaces Firestore)
-        logger.info("Saving scan to PostgreSQL", user_id=user_id)
+        logger.info("Saving scan to MongoDB", user_id=user_id)
         import uuid
         scan_id = str(uuid.uuid4())
         
@@ -291,9 +291,9 @@ async def scan_medication(
                     scan_data=scan_data,
                 )
                 scan_id = saved_scan_id
-                logger.info("Scan saved to PostgreSQL", scan_id=scan_id)
+                logger.info("Scan saved to MongoDB", scan_id=scan_id)
             except Exception as e:
-                logger.error("Failed to save scan to PostgreSQL", error=str(e))
+                logger.error("Failed to save scan to MongoDB", error=str(e))
         
         # 6. Consommer les crédits seulement si identification réussie (pas si "Médicament non identifié")
         med_name = (analysis.get("medication_name") or "").strip()
@@ -426,9 +426,9 @@ async def get_scan(
     """
     
     user_id = user["uid"]
-    logger.info("Retrieving scan from PostgreSQL", user_id=user_id, scan_id=scan_id)
+    logger.info("Retrieving scan from MongoDB", user_id=user_id, scan_id=scan_id)
     
-    # Get scan from PostgreSQL
+    # Get scan from MongoDB
     scan_data = scan_history_service.get_scan_by_id(scan_id, user_id)
     
     if not scan_data:

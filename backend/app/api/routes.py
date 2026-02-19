@@ -16,6 +16,7 @@ from app.api.endpoints import (
     analytics,
     trial,
     admin,
+    images,
 )
 
 router = APIRouter()
@@ -87,3 +88,8 @@ router.include_router(
     tags=["Admin Dashboard"],
 )
 
+router.include_router(
+    images.router,
+    prefix="/images",
+    tags=["Images"],
+)

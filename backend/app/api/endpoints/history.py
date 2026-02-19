@@ -85,7 +85,7 @@ async def get_history(
             )
         )
     
-    logger.info("History retrieved from PostgreSQL", 
+    logger.info("History retrieved from MongoDB", 
                 user_id=user_id, 
                 count=len(scans),
                 total=total_count)

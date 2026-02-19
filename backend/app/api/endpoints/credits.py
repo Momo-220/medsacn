@@ -38,7 +38,7 @@ async def get_my_credits(
     user_id = user["uid"]
     is_anonymous = user.get("is_anonymous", False)
     credits_obj = credits_service.get_or_create(user_id, is_anonymous)
-    credits = credits_obj.credits
+    credits = credits_obj.get("credits", 0)
     next_reset_at = _next_reset_utc()
     logger.info("Credits retrieved", user_id=user_id, credits=credits, is_trial=is_anonymous)
     return CreditsResponse(credits=credits, next_reset_at=next_reset_at)

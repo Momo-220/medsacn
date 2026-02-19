@@ -1,185 +1,99 @@
 """
-Google Cloud Storage Service
-Image upload and management
+Image storage - MongoDB GridFS (remplace GCS)
 """
 
-from google.cloud import storage
-from google.oauth2 import service_account
 from typing import Optional
-from datetime import timedelta
 import uuid
 import os
 import structlog
+from bson import ObjectId
+from gridfs import GridFS
 
 from app.config import settings
+from app.db.mongodb import get_db
 from app.core.exceptions import ImageProcessingError
 
 logger = structlog.get_logger()
 
 
 class StorageService:
-    """Manage image storage in Google Cloud Storage"""
-    
+    """Store images in MongoDB GridFS"""
+
     def __init__(self):
-        self.client: Optional[storage.Client] = None
-        self.bucket: Optional[storage.Bucket] = None
+        self._fs: Optional[GridFS] = None
         self._initialized = False
-    
+
     async def initialize(self):
-        """Initialize GCS client"""
         if self._initialized:
             return
-        
         try:
-            # Mode dev sans GCS
             if settings.ENVIRONMENT == "development":
-                logger.warning(" Running in DEV MODE - Using local file storage")
-                # Crer le dossier local pour stocker les images
                 os.makedirs("./uploads", exist_ok=True)
                 self._initialized = True
+                logger.info("Storage initialized (local uploads)")
                 return
-            
-            # Utiliser les credentials explicites si disponibles
-            credentials = None
-            if settings.GOOGLE_APPLICATION_CREDENTIALS:
-                credentials_path = settings.GOOGLE_APPLICATION_CREDENTIALS
-                if os.path.exists(credentials_path):
-                    credentials = service_account.Credentials.from_service_account_file(
-                        credentials_path
-                    )
-                    logger.info(" Using service account credentials from file", path=credentials_path)
-                else:
-                    logger.warning(" Credentials file not found", path=credentials_path)
-            
-            # Créer le client avec ou sans credentials explicites
-            if credentials:
-                self.client = storage.Client(
-                    project=settings.GOOGLE_CLOUD_PROJECT,
-                    credentials=credentials
-                )
-            else:
-                # Essayer avec Application Default Credentials
-                self.client = storage.Client(project=settings.GOOGLE_CLOUD_PROJECT)
-            
-            self.bucket = self.client.bucket(settings.GCS_BUCKET_NAME)
-            
+            db = get_db()
+            self._fs = GridFS(db, collection="scan_images")
             self._initialized = True
-            logger.info(" GCS Storage initialized successfully", bucket=settings.GCS_BUCKET_NAME)
-            
+            logger.info("Storage initialized (MongoDB GridFS)")
         except Exception as e:
-            logger.error(" GCS initialization failed", error=str(e))
+            logger.error("Storage init failed", error=str(e))
             if settings.ENVIRONMENT == "development":
-                logger.warning(" Continuing with local storage")
                 self._initialized = True
             else:
                 raise ImageProcessingError("Failed to initialize storage service")
-    
+
     async def upload_image(
         self,
         image_bytes: bytes,
         user_id: str,
         content_type: str = "image/jpeg",
     ) -> str:
-        """
-        Upload image to GCS
-        Returns public URL
-        """
         try:
-            # Mode dev - stockage local, servi via le backend
-            # En production, on exige GCS (pas de stockage local)
-            if not self.bucket:
-                if settings.ENVIRONMENT == "production":
-                    logger.warning("GCS not initialized in production - skipping image save")
-                    raise ImageProcessingError("Storage non configuré en production")
-                import os
+            if settings.ENVIRONMENT == "development" and not self._fs:
                 file_extension = content_type.split("/")[-1]
                 filename = f"{uuid.uuid4()}.{file_extension}"
                 filepath = f"./uploads/{filename}"
-                
                 with open(filepath, "wb") as f:
                     f.write(image_bytes)
-                
-                # URL accessible via le backend - utiliser API_PUBLIC_URL ou détection
-                base_url = (
-                    settings.API_PUBLIC_URL
-                    or os.getenv("API_PUBLIC_URL")
-                    or "http://localhost:8888"
-                )
-                image_url = f"{base_url.rstrip('/')}/uploads/{filename}"
-                
-                logger.info(" DEV: Image saved locally", filename=filename, url=image_url, user_id=user_id)
+                base_url = (settings.API_PUBLIC_URL or os.getenv("API_PUBLIC_URL") or "http://localhost:8888").rstrip("/")
+                image_url = f"{base_url}/uploads/{filename}"
+                logger.info("DEV: Image saved locally", filename=filename, user_id=user_id)
                 return image_url
-            
-            # Generate unique filename
-            file_extension = content_type.split("/")[-1]
-            filename = f"scans/{user_id}/{uuid.uuid4()}.{file_extension}"
-            
-            # Create blob
-            blob = self.bucket.blob(filename)
-            
-            # Set content type
-            blob.content_type = content_type
-            
-            # Upload
-            blob.upload_from_string(
+
+            if not self._fs:
+                raise ImageProcessingError("Storage non configuré")
+
+            file_id = self._fs.put(
                 image_bytes,
+                filename=f"scans/{user_id}/{uuid.uuid4()}.{content_type.split('/')[-1]}",
                 content_type=content_type,
+                metadata={"user_id": user_id},
             )
-            
-            # Generate signed URL (works with uniform bucket-level access)
-            # URL valide pendant 7 jours maximum (604800 secondes)
-            signed_url = blob.generate_signed_url(
-                version="v4",
-                expiration=timedelta(seconds=604800),  # 7 jours (maximum autorisé)
-                method="GET",
-            )
-            
-            logger.info("Image uploaded successfully", filename=filename, user_id=user_id)
-            return signed_url
-            
+            base_url = (settings.API_PUBLIC_URL or os.getenv("API_PUBLIC_URL") or "").rstrip("/")
+            if base_url:
+                image_url = f"{base_url}/api/v1/images/{str(file_id)}"
+            else:
+                image_url = f"/api/v1/images/{str(file_id)}"
+            logger.info("Image uploaded to GridFS", file_id=str(file_id), user_id=user_id)
+            return image_url
         except Exception as e:
             logger.error("Image upload failed", error=str(e))
             raise ImageProcessingError(f"Failed to upload image: {str(e)}")
-    
-    async def get_signed_url(
-        self,
-        blob_name: str,
-        expiration: int = 3600,
-    ) -> str:
-        """
-        Generate signed URL for private access
-        Expires after `expiration` seconds
-        """
-        try:
-            blob = self.bucket.blob(blob_name)
-            
-            url = blob.generate_signed_url(
-                version="v4",
-                expiration=timedelta(seconds=expiration),
-                method="GET",
-            )
-            
-            return url
-            
-        except Exception as e:
-            logger.error("Failed to generate signed URL", error=str(e))
-            raise ImageProcessingError("Failed to generate image URL")
-    
+
+    async def get_signed_url(self, blob_name: str, expiration: int = 3600) -> str:
+        base_url = (settings.API_PUBLIC_URL or "").rstrip("/")
+        return f"{base_url}/api/v1/images/proxy?path={blob_name}"
+
     async def delete_image(self, blob_name: str) -> bool:
-        """Delete image from GCS"""
         try:
-            blob = self.bucket.blob(blob_name)
-            blob.delete()
-            
-            logger.info("Image deleted", blob_name=blob_name)
-            return True
-            
+            if self._fs and ObjectId.is_valid(blob_name):
+                self._fs.delete(ObjectId(blob_name))
+                return True
+            return False
         except Exception as e:
             logger.error("Failed to delete image", error=str(e))
             return False
 
 
-# Singleton instance
 storage_service = StorageService()
-
-

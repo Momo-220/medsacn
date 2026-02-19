@@ -23,10 +23,8 @@ class Settings(BaseSettings):
     API_PUBLIC_URL: Optional[str] = None  # URL publique du backend (ex: https://xxx.run.app)
     CORS_ORIGINS: str = "http://localhost:3001,http://localhost:3002"
     
-    # Google Cloud
-    GOOGLE_CLOUD_PROJECT: str
-    GOOGLE_APPLICATION_CREDENTIALS: Optional[str] = None
-    GCS_BUCKET_NAME: str
+    # MongoDB (remplace Cloud SQL + GCS)
+    MONGODB_URI: str = "mongodb://localhost:27017"
     
     # Google Gemini AI
     GEMINI_API_KEY: str
@@ -39,15 +37,7 @@ class Settings(BaseSettings):
     FIREBASE_PROJECT_ID: str
     FIREBASE_CREDENTIALS_PATH: Optional[str] = None
     
-    # Database
-    DB_HOST: str = "localhost"
-    DB_PORT: int = 5432
-    DB_NAME: str = "mediscan"
-    DB_USER: str = "postgres"
-    DB_PASSWORD: str
-    DB_INSTANCE_CONNECTION_NAME: Optional[str] = None
-    
-    # Firestore
+    # Firestore (chats / analytics - inchangé)
     FIRESTORE_COLLECTION_HISTORY: str = "scan_history"
     FIRESTORE_COLLECTION_CHATS: str = "ai_chats"
     FIRESTORE_COLLECTION_ANALYTICS: str = "app_analytics"
@@ -81,20 +71,9 @@ class Settings(BaseSettings):
     
     @property
     def database_url(self) -> str:
-        """Construct database connection URL"""
-        # Production = PostgreSQL (Cloud SQL)
-        if self.ENVIRONMENT == "production":
-            # Cloud Run + Cloud SQL Proxy (Unix socket)
-            if self.DB_INSTANCE_CONNECTION_NAME:
-                return (
-                    f"postgresql+psycopg2://{self.DB_USER}:{self.DB_PASSWORD}@/"
-                    f"{self.DB_NAME}?host=/cloudsql/{self.DB_INSTANCE_CONNECTION_NAME}"
-                )
-            # TCP (IP publique ou localhost)
-            return f"postgresql+psycopg2://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-        # Development = SQLite local
+        """Legacy: SQLite fallback (medication_service non migré). Principal = MongoDB."""
         return "sqlite:///./mediscan.db"
-    
+
     @property
     def is_production(self) -> bool:
         """Check if running in production"""
