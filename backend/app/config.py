@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     # Firebase
     FIREBASE_PROJECT_ID: str
     FIREBASE_CREDENTIALS_PATH: Optional[str] = None
+    FIREBASE_CREDENTIALS_JSON: Optional[str] = None  # JSON string (pour Render sans fichier)
     
     # Firestore (chats / analytics - inchangé)
     FIRESTORE_COLLECTION_HISTORY: str = "scan_history"

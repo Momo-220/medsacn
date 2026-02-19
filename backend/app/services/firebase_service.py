@@ -30,26 +30,35 @@ class FirebaseService:
         
         try:
             import os
-            
-            # Vérifier si les credentials existent
-            has_credentials = False
-            if settings.FIREBASE_CREDENTIALS_PATH:
-                has_credentials = os.path.exists(settings.FIREBASE_CREDENTIALS_PATH)
-            
-            # Si pas de credentials, essayer Application Default Credentials
-            if not has_credentials:
+            import json
+
+            cred = None
+
+            # 1) Variable d'environnement JSON (idéal pour Render)
+            if settings.FIREBASE_CREDENTIALS_JSON:
                 try:
-                    # Use Application Default Credentials (pour Cloud Run / GCP)
+                    cred_dict = json.loads(settings.FIREBASE_CREDENTIALS_JSON)
+                    cred = credentials.Certificate(cred_dict)
+                    logger.info(" Using Firebase credentials from FIREBASE_CREDENTIALS_JSON")
+                except Exception as e:
+                    logger.error(" Invalid FIREBASE_CREDENTIALS_JSON", error=str(e))
+                    self._initialized = True
+                    return
+
+            # 2) Fichier credentials
+            if cred is None and settings.FIREBASE_CREDENTIALS_PATH and os.path.exists(settings.FIREBASE_CREDENTIALS_PATH):
+                cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
+                logger.info(" Using Firebase credentials file")
+
+            # 3) Application Default Credentials (GCP / Cloud Run)
+            if cred is None:
+                try:
                     cred = credentials.ApplicationDefault()
                     logger.info(" Using Application Default Credentials for Firebase")
                 except Exception as adc_error:
                     logger.warning(" Firebase credentials not found - Running without Firebase", error=str(adc_error))
                     self._initialized = True
                     return
-            else:
-                # Initialize Firebase with credentials file
-                cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
-                logger.info(" Using Firebase credentials file")
             
             self.app = firebase_admin.initialize_app(cred, {
                 'projectId': settings.FIREBASE_PROJECT_ID,
