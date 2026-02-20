@@ -4,13 +4,18 @@ Credits (Gemmes) Service - MongoDB
 
 import structlog
 from typing import Optional
-from datetime import datetime, date
+from datetime import datetime, date, time
 
 from app.db.mongodb import get_collection
 
 logger = structlog.get_logger()
 
 COLLECTION = "user_credits"
+
+
+def _today_datetime() -> datetime:
+    """Date du jour en datetime (minuit) pour BSON/MongoDB."""
+    return datetime.combine(date.today(), time.min)
 
 
 class CreditsService:
@@ -42,7 +47,6 @@ class CreditsService:
     def get_or_create(self, user_id: str, is_anonymous: bool = False) -> dict:
         coll = get_collection(COLLECTION)
         doc = coll.find_one({"user_id": user_id})
-        today = date.today()
         now = datetime.utcnow()
 
         if not doc:
@@ -50,7 +54,7 @@ class CreditsService:
             doc = {
                 "user_id": user_id,
                 "credits": quota,
-                "quota_reset_date": today,
+                "quota_reset_date": _today_datetime(),
                 "updated_at": now,
             }
             coll.insert_one(doc)
@@ -61,10 +65,10 @@ class CreditsService:
             quota = self._get_daily_quota(is_anonymous)
             coll.update_one(
                 {"user_id": user_id},
-                {"$set": {"credits": quota, "quota_reset_date": today, "updated_at": now}},
+                {"$set": {"credits": quota, "quota_reset_date": _today_datetime(), "updated_at": now}},
             )
             doc["credits"] = quota
-            doc["quota_reset_date"] = today
+            doc["quota_reset_date"] = _today_datetime()
             logger.info("Daily quota reset", user_id=user_id, credits=quota, is_trial=is_anonymous)
         return doc
 
@@ -84,20 +88,22 @@ class CreditsService:
             coll.insert_one({
                 "user_id": user_id,
                 "credits": new_credits,
-                "quota_reset_date": date.today(),
+                "quota_reset_date": _today_datetime(),
                 "updated_at": datetime.utcnow(),
             })
             logger.info("Credits added", user_id=user_id, amount=amount, total=new_credits)
             return new_credits
 
-        if doc.get("credits") == 0 and doc.get("quota_reset_date") == date.today():
+        qd = doc.get("quota_reset_date")
+        qd_date = qd.date() if isinstance(qd, datetime) else qd
+        if doc.get("credits") == 0 and qd_date == date.today():
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Votre quota journalier est épuisé. Revenez demain pour obtenir votre nouveau quota de gemmes.",
             )
         if self._should_reset_quota(doc):
             doc["credits"] = self._get_daily_quota(is_anonymous)
-            doc["quota_reset_date"] = date.today()
+            doc["quota_reset_date"] = _today_datetime()
         new_credits = doc["credits"] + amount
         coll.update_one(
             {"user_id": user_id},
@@ -132,7 +138,7 @@ class CreditsService:
             coll.insert_one({
                 "user_id": user_id,
                 "credits": quota,
-                "quota_reset_date": date.today(),
+                "quota_reset_date": _today_datetime(),
                 "updated_at": datetime.utcnow(),
             })
             doc = {"credits": quota}
@@ -141,7 +147,7 @@ class CreditsService:
             doc["credits"] = self._get_daily_quota(is_anonymous)
             coll.update_one(
                 {"user_id": user_id},
-                {"$set": {"credits": doc["credits"], "quota_reset_date": date.today(), "updated_at": datetime.utcnow()}},
+                {"$set": {"credits": doc["credits"], "quota_reset_date": _today_datetime(), "updated_at": datetime.utcnow()}},
             )
 
         if doc["credits"] < cost:
