@@ -10,7 +10,7 @@ interface CameraPhotoCaptureProps {
 }
 
 export function CameraPhotoCapture({ onCapture, onClose }: CameraPhotoCaptureProps) {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -30,7 +30,7 @@ export function CameraPhotoCapture({ onCapture, onClose }: CameraPhotoCapturePro
   const startCamera = async () => {
     try {
       if (!navigator.mediaDevices?.getUserMedia) {
-        setError(language === 'fr' ? 'Caméra non supportée.' : 'Camera not supported.');
+        setError(language === 'fr' ? 'Caméra non supportée.' : language === 'en' ? 'Camera not supported.' : language === 'ar' ? 'الكاميرا غير مدعومة.' : 'Kamera desteklenmiyor.');
         return;
       }
 
@@ -62,9 +62,9 @@ export function CameraPhotoCapture({ onCapture, onClose }: CameraPhotoCapturePro
       }
     } catch (err: any) {
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setError(language === 'fr' ? 'Autorisez l\'accès à la caméra.' : 'Allow camera access.');
+        setError(language === 'fr' ? 'Autorisez l\'accès à la caméra.' : language === 'en' ? 'Allow camera access.' : language === 'ar' ? 'السماح بالوصول إلى الكاميرا.' : 'Kameraya erişime izin verin.');
       } else {
-        setError(language === 'fr' ? 'Impossible d\'ouvrir la caméra.' : 'Cannot open camera.');
+        setError(language === 'fr' ? 'Impossible d\'ouvrir la caméra.' : language === 'en' ? 'Cannot open camera.' : language === 'ar' ? 'لا يمكن فتح الكاميرا.' : 'Kamera açılamıyor.');
       }
     }
   };
@@ -108,7 +108,7 @@ export function CameraPhotoCapture({ onCapture, onClose }: CameraPhotoCapturePro
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/50 text-white"
-          aria-label={language === 'fr' ? 'Fermer' : 'Close'}
+          aria-label={t('close')}
         >
           <X className="w-6 h-6" />
         </button>
@@ -139,14 +139,14 @@ export function CameraPhotoCapture({ onCapture, onClose }: CameraPhotoCapturePro
                 onClick={takePhoto}
                 disabled={!cameraReady}
                 className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white border-4 border-primary flex items-center justify-center shadow-lg disabled:opacity-50 active:scale-95 transition-transform"
-                aria-label={language === 'fr' ? 'Prendre la photo' : 'Take photo'}
+                aria-label={t('takePhoto')}
               >
                 <Camera className="w-10 h-10 sm:w-12 sm:h-12 text-primary" strokeWidth={2.5} />
               </button>
             </div>
 
-            <p className="absolute left-0 right-0 text-center text-white/90 text-sm bottom-[calc(13rem+env(safe-area-inset-bottom))]">
-              {language === 'fr' ? 'Cadrez le médicament puis prenez la photo' : 'Frame the medication then take the photo'}
+            <p className="absolute left-0 right-0 text-center text-white/90 text-sm bottom-[calc(13rem+env(safe-area-inset-bottom))] px-4 whitespace-normal max-w-[90%] mx-auto leading-tight">
+              {t('frameMedicationTakePhoto')}
             </p>
           </>
         )}

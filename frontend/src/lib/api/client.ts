@@ -3,13 +3,16 @@ import { errorTranslator } from '@/lib/errors/errorTranslator';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8888';
 
+const DEFAULT_TIMEOUT = 45000; // 45s (cold start Firebase + premier chargement)
+const SLOW_ENDPOINT_TIMEOUT = 25000; // 25s pour history/reminders/credits
+
 class APIClient {
   private client: AxiosInstance;
 
   constructor() {
     this.client = axios.create({
       baseURL: `${API_URL}/api/v1`,
-      timeout: 30000, // 30 secondes
+      timeout: DEFAULT_TIMEOUT,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -68,7 +71,7 @@ class APIClient {
     sessionStorage.setItem('auth_token', token);
   }
 
-  // Scan endpoints (timeout 60s: Cloud Run cold start + Gemini peuvent prendre du temps)
+  // Scan (timeout 60s: backend + Gemini peuvent prendre du temps)
   async scanMedication(file: File, language: string = 'fr'): Promise<any> {
     const formData = new FormData();
     formData.append('file', file);
@@ -279,13 +282,24 @@ class APIClient {
     }
   }
 
-  // History endpoints
+  // History endpoints (timeout + 1 retry pour robustesse)
   async getHistory(limit: number = 50, page: number = 1): Promise<any> {
-    const response = await this.client.get('/history', {
+    const request = () => this.client.get('/history', {
       params: { limit, page },
+      timeout: SLOW_ENDPOINT_TIMEOUT,
     });
-
-    return response.data;
+    try {
+      const response = await request();
+      return response.data;
+    } catch (err: any) {
+      if ((err.code === 'ECONNABORTED' || err.code === 'ERR_NETWORK') && !(err as any).__retried) {
+        (err as any).__retried = true;
+        await new Promise((r) => setTimeout(r, 1500));
+        const response = await request();
+        return response.data;
+      }
+      throw err;
+    }
   }
 
   // Feedback endpoint
@@ -323,12 +337,24 @@ class APIClient {
     return response.data;
   }
 
-  // Reminders endpoints
+  // Reminders endpoints (timeout + 1 retry)
   async getReminders(activeOnly: boolean = true, limit: number = 50): Promise<any> {
-    const response = await this.client.get('/reminders', {
+    const request = () => this.client.get('/reminders', {
       params: { active_only: activeOnly, limit },
+      timeout: SLOW_ENDPOINT_TIMEOUT,
     });
-    return response.data;
+    try {
+      const response = await request();
+      return response.data;
+    } catch (err: any) {
+      if ((err.code === 'ECONNABORTED' || err.code === 'ERR_NETWORK') && !(err as any).__retried) {
+        (err as any).__retried = true;
+        await new Promise((r) => setTimeout(r, 1500));
+        const response = await request();
+        return response.data;
+      }
+      throw err;
+    }
   }
 
   async createReminder(data: {
@@ -403,10 +429,21 @@ class APIClient {
     await this.client.post('/trial/register', { device_id: deviceId });
   }
 
-  // Credits endpoints
+  // Credits endpoints (timeout + 1 retry)
   async getCredits(): Promise<{ credits: number; next_reset_at?: string }> {
-    const response = await this.client.get('/credits');
-    return response.data;
+    const request = () => this.client.get('/credits', { timeout: SLOW_ENDPOINT_TIMEOUT });
+    try {
+      const response = await request();
+      return response.data;
+    } catch (err: any) {
+      if ((err.code === 'ECONNABORTED' || err.code === 'ERR_NETWORK') && !(err as any).__retried) {
+        (err as any).__retried = true;
+        await new Promise((r) => setTimeout(r, 1500));
+        const response = await request();
+        return response.data;
+      }
+      throw err;
+    }
   }
 
   async addCredits(amount: number): Promise<{ credits: number; next_reset_at?: string }> {

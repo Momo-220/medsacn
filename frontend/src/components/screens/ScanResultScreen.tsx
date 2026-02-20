@@ -263,7 +263,7 @@ export function ScanResultScreen({ result }: ScanResultScreenProps) {
             {result.expiry_date && (
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
-                <span>Exp: {result.expiry_date}</span>
+                <span>{t('expiryShort')}: {result.expiry_date}</span>
               </div>
             )}
           </div>
@@ -308,7 +308,7 @@ export function ScanResultScreen({ result }: ScanResultScreenProps) {
               </h3>
               {suggestions.length > 0 && (
                 <span className="text-sm font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">
-                  {suggestions.length} résultats
+                  {t('resultsCount').replace('{count}', String(suggestions.length))}
                 </span>
               )}
             </div>
@@ -758,18 +758,18 @@ function renderCard(type: string, data: any, result: ScanResult, t: (key: Transl
 
     case 'side_effects':
       return (
-        <Card className={cardHeight + " flex flex-col border border-orange-200 bg-orange-50"}>
+        <Card className={cardHeight + " flex flex-col border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20 transition-colors"}>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-orange-600" />
-              <CardTitle className="text-lg font-bold text-orange-700">Effets indésirables</CardTitle>
+              <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              <CardTitle className="text-lg font-bold text-orange-700 dark:text-orange-300">{t('sideEffects')}</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto">
             <ul className="space-y-3">
               {toArray(data).map((effect: string, i: number) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-text-secondary">
-                  <span className="text-orange-600 mt-0.5 font-bold text-base">•</span>
+                <li key={i} className="flex items-start gap-3 text-sm text-text-secondary dark:text-gray-300">
+                  <span className="text-orange-600 dark:text-orange-400 mt-0.5 font-bold text-base">•</span>
                   <span className="flex-1">{effect}</span>
                 </li>
               ))}
@@ -780,18 +780,18 @@ function renderCard(type: string, data: any, result: ScanResult, t: (key: Transl
 
     case 'interactions':
       return (
-        <Card className={cardHeight + " flex flex-col"}>
+        <Card className={cardHeight + " flex flex-col dark:bg-gray-800 dark:border-gray-700 transition-colors"}>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Info className="w-5 h-5 text-primary" />
-              <CardTitle className="text-lg font-bold text-text-primary">Interactions</CardTitle>
+              <Info className="w-5 h-5 text-primary dark:text-blue-400" />
+              <CardTitle className="text-lg font-bold text-text-primary dark:text-gray-100">{t('interactions')}</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto">
             <ul className="space-y-3">
               {toArray(data).map((interaction: string, i: number) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-text-secondary">
-                  <span className="text-primary mt-0.5 font-bold text-base">•</span>
+                <li key={i} className="flex items-start gap-3 text-sm text-text-secondary dark:text-gray-300">
+                  <span className="text-primary dark:text-blue-400 mt-0.5 font-bold text-base">•</span>
                   <span className="flex-1">
                     {interaction.split(/(\b(?:éviter|risque|augmentation|diminution|interaction|déconseillé|précaution)\b)/gi).map((part: string, j: number) => {
                       const isKeyword = /^(?:éviter|risque|augmentation|diminution|interaction|déconseillé|précaution)$/i.test(part.trim());
@@ -811,19 +811,19 @@ function renderCard(type: string, data: any, result: ScanResult, t: (key: Transl
 
     case 'overdose':
       return (
-        <Card className={cardHeight + " flex flex-col border border-red-200 bg-red-50"}>
+        <Card className={cardHeight + " flex flex-col border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 transition-colors"}>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
-              <CardTitle className="text-lg font-bold text-red-700">Surdosage</CardTitle>
+              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+              <CardTitle className="text-lg font-bold text-red-700 dark:text-red-300">{t('overdose')}</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto">
-            <p className="text-text-secondary text-sm leading-relaxed">
+            <p className="text-text-secondary dark:text-gray-300 text-sm leading-relaxed">
               {data.split(/(\b(?:surdosage|danger|risque|symptômes|urgence|appeler|médecin)\b)/gi).map((part: string, i: number) => {
                 const isKeyword = /^(?:surdosage|danger|risque|symptômes|urgence|appeler|médecin)$/i.test(part.trim());
                 return isKeyword ? (
-                  <span key={i} className="text-red-600 font-bold">{part}</span>
+                  <span key={i} className="text-red-600 dark:text-red-400 font-bold">{part}</span>
                 ) : (
                   <span key={i}>{part}</span>
                 );
@@ -835,19 +835,19 @@ function renderCard(type: string, data: any, result: ScanResult, t: (key: Transl
 
     case 'storage':
       return (
-        <Card className={cardHeight + " flex flex-col"}>
+        <Card className={cardHeight + " flex flex-col dark:bg-gray-800 dark:border-gray-700 transition-colors"}>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Thermometer className="w-5 h-5 text-primary" />
-              <CardTitle className="text-lg font-bold text-text-primary">Conservation</CardTitle>
+              <Thermometer className="w-5 h-5 text-primary dark:text-blue-400" />
+              <CardTitle className="text-lg font-bold text-text-primary dark:text-gray-100">{t('storage')}</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto">
-            <p className="text-text-secondary text-sm leading-relaxed">
+            <p className="text-text-secondary dark:text-gray-300 text-sm leading-relaxed">
               {data.split(/(\b(?:température|conservation|réfrigérateur|à l'abri|protéger)\b)/gi).map((part: string, i: number) => {
                 const isKeyword = /^(?:température|conservation|réfrigérateur|à l'abri|protéger)$/i.test(part.trim());
                 return isKeyword ? (
-                  <span key={i} className="text-primary font-semibold">{part}</span>
+                  <span key={i} className="text-primary dark:text-blue-400 font-semibold">{part}</span>
                 ) : (
                   <span key={i}>{part}</span>
                 );
@@ -859,18 +859,18 @@ function renderCard(type: string, data: any, result: ScanResult, t: (key: Transl
 
     case 'warnings':
       return (
-        <Card className={cardHeight + " flex flex-col border border-yellow-200 bg-yellow-50"}>
+        <Card className={cardHeight + " flex flex-col border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 transition-colors"}>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-yellow-600" />
-              <CardTitle className="text-lg font-bold text-yellow-700">Avertissements</CardTitle>
+              <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+              <CardTitle className="text-lg font-bold text-yellow-700 dark:text-yellow-300">{t('warnings')}</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto">
             <ul className="space-y-3">
-              {data.map((warning: string, i: number) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-text-secondary">
-                  <span className="text-yellow-600 mt-0.5 font-bold text-base">•</span>
+              {toArray(data).map((warning: string, i: number) => (
+                <li key={i} className="flex items-start gap-3 text-sm text-text-secondary dark:text-gray-300">
+                  <span className="text-yellow-600 dark:text-yellow-400 mt-0.5 font-bold text-base">•</span>
                   <span className="flex-1">{warning}</span>
                 </li>
               ))}
@@ -881,15 +881,15 @@ function renderCard(type: string, data: any, result: ScanResult, t: (key: Transl
 
     case 'additional_info':
       return (
-        <Card className={cardHeight + " flex flex-col"}>
+        <Card className={cardHeight + " flex flex-col dark:bg-gray-800 dark:border-gray-700 transition-colors"}>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Info className="w-5 h-5 text-primary" />
-              <CardTitle className="text-lg font-bold text-text-primary">Informations</CardTitle>
+              <Info className="w-5 h-5 text-primary dark:text-blue-400" />
+              <CardTitle className="text-lg font-bold text-text-primary dark:text-gray-100">{t('additionalInfo')}</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto">
-            <p className="text-text-secondary text-sm leading-relaxed">
+            <p className="text-text-secondary dark:text-gray-300 text-sm leading-relaxed">
               {data}
             </p>
           </CardContent>

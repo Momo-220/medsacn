@@ -8,6 +8,10 @@ export interface ErrorInfo {
   title?: string;
   type: 'error' | 'warning' | 'info';
   action?: string;
+  /** Clés i18n pour affichage traduit (prioritaires sur title/message/action) */
+  titleKey?: string;
+  messageKey?: string;
+  actionKey?: string;
 }
 
 class ErrorTranslator {
@@ -18,6 +22,9 @@ class ErrorTranslator {
     // Erreur réseau
     if (error.code === 'ERR_NETWORK' || error.message?.includes('Network Error') || error.message?.includes('Failed to fetch')) {
       return {
+        titleKey: 'errorNetworkTitle',
+        messageKey: 'errorNetworkMessage',
+        actionKey: 'errorNetworkAction',
         title: 'Problème de connexion',
         message: 'Vérifiez votre connexion internet et réessayez.',
         type: 'error',
@@ -28,6 +35,9 @@ class ErrorTranslator {
     // Timeout
     if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
       return {
+        titleKey: 'errorTimeoutTitle',
+        messageKey: 'errorTimeoutMessage',
+        actionKey: 'retry',
         title: 'Temps d\'attente dépassé',
         message: 'La requête prend trop de temps. Réessayez dans quelques instants.',
         type: 'error',
@@ -57,6 +67,9 @@ class ErrorTranslator {
 
     if (status === 402) {
       return {
+        titleKey: 'errorCreditsTitle',
+        messageKey: 'errorCreditsMessage',
+        actionKey: 'errorCreditsAction',
         title: 'Crédits insuffisants',
         message: 'Vous n\'avez plus assez de gemmes pour effectuer cette action. Ajoutez des gemmes pour continuer.',
         type: 'warning',
@@ -91,6 +104,8 @@ class ErrorTranslator {
 
     if (status === 429) {
       return {
+        titleKey: 'errorTooManyRequestsTitle',
+        messageKey: 'errorTooManyRequestsMessage',
         title: 'Trop de requêtes',
         message: 'Vous avez effectué trop de requêtes. Veuillez patienter une minute avant de réessayer.',
         type: 'warning',
@@ -100,6 +115,9 @@ class ErrorTranslator {
 
     if (status === 500) {
       return {
+        titleKey: 'errorServerTitle',
+        messageKey: 'errorServerMessage',
+        actionKey: 'retry',
         title: 'Erreur serveur',
         message: 'Un problème est survenu sur le serveur. Notre équipe en a été informée. Réessayez dans quelques instants.',
         type: 'error',
@@ -109,6 +127,9 @@ class ErrorTranslator {
 
     if (status === 503) {
       return {
+        titleKey: 'errorUnavailableTitle',
+        messageKey: 'errorUnavailableMessage',
+        actionKey: 'retry',
         title: 'Service indisponible',
         message: 'Le service est temporairement indisponible. Veuillez réessayer dans quelques minutes.',
         type: 'warning',
@@ -184,6 +205,9 @@ class ErrorTranslator {
     }
 
     return {
+      titleKey: 'errorGenericTitle',
+      messageKey: 'errorGenericMessage',
+      actionKey: 'retry',
       title: 'Une erreur est survenue',
       message: 'Un problème inattendu s\'est produit. Réessayez dans quelques instants.',
       type: 'error',

@@ -162,6 +162,10 @@ export const translations = {
     precautions: 'Précautions',
     storage: 'Conservation',
     packagingLanguage: 'Langue de l\'emballage',
+    overdose: 'Surdosage',
+    additionalInfo: 'Informations complémentaires',
+    resultsCount: '{count} résultat(s)',
+    expiryShort: 'Exp.',
     composition: 'Composition',
     excipients: 'Excipients',
     suggestions: 'Suggestions',
@@ -248,6 +252,29 @@ export const translations = {
     faqQuestion2: 'Quels sont les effets secondaires de l\'amoxicilline ?',
     faqQuestion3: 'Comment conserver l\'insuline correctement ?',
     
+    // Erreurs (i18n)
+    errorTimeoutTitle: 'Temps d\'attente dépassé',
+    errorTimeoutMessage: 'La requête prend trop de temps. Réessayez dans quelques instants.',
+    errorNetworkTitle: 'Problème de connexion',
+    errorNetworkMessage: 'Vérifiez votre connexion internet et réessayez.',
+    errorNetworkAction: 'Vérifier la connexion',
+    errorServerTitle: 'Erreur serveur',
+    errorServerMessage: 'Un problème est survenu. Réessayez dans quelques instants.',
+    errorGenericTitle: 'Une erreur est survenue',
+    errorGenericMessage: 'Un problème inattendu s\'est produit. Réessayez.',
+    errorCreditsTitle: 'Crédits insuffisants',
+    errorCreditsMessage: 'Ajoutez des gemmes pour continuer.',
+    errorCreditsAction: 'Ajouter des gemmes',
+    errorTooManyRequestsTitle: 'Trop de requêtes',
+    errorTooManyRequestsMessage: 'Patientez une minute avant de réessayer.',
+    errorUnavailableTitle: 'Service indisponible',
+    errorUnavailableMessage: 'Réessayez dans quelques minutes.',
+
+    // Caméra / Scan (bouton photo)
+    frameMedicationTakePhoto: 'Cadrez le médicament puis prenez la photo',
+    takePhoto: 'Prendre une photo',
+    cameraThenAnalyze: 'Caméra puis analyse',
+
     // Live Camera Scanner
     positionMedication: 'Positionnez le médicament devant la caméra',
     stop: 'Arrêter',
@@ -507,6 +534,10 @@ export const translations = {
     precautions: 'Precautions',
     storage: 'Storage',
     packagingLanguage: 'Packaging Language',
+    overdose: 'Overdose',
+    additionalInfo: 'Additional information',
+    resultsCount: '{count} result(s)',
+    expiryShort: 'Exp.',
     composition: 'Composition',
     excipients: 'Excipients',
     suggestions: 'Suggestions',
@@ -593,6 +624,29 @@ export const translations = {
     faqQuestion2: 'What are the side effects of amoxicillin?',
     faqQuestion3: 'How to store insulin correctly?',
     
+    // Errors (i18n)
+    errorTimeoutTitle: 'Request timeout',
+    errorTimeoutMessage: 'The request is taking too long. Please try again in a moment.',
+    errorNetworkTitle: 'Connection problem',
+    errorNetworkMessage: 'Check your internet connection and try again.',
+    errorNetworkAction: 'Check connection',
+    errorServerTitle: 'Server error',
+    errorServerMessage: 'Something went wrong. Please try again.',
+    errorGenericTitle: 'An error occurred',
+    errorGenericMessage: 'An unexpected problem occurred. Please try again.',
+    errorCreditsTitle: 'Insufficient credits',
+    errorCreditsMessage: 'Add gems to continue.',
+    errorCreditsAction: 'Add gems',
+    errorTooManyRequestsTitle: 'Too many requests',
+    errorTooManyRequestsMessage: 'Please wait a minute before trying again.',
+    errorUnavailableTitle: 'Service unavailable',
+    errorUnavailableMessage: 'Please try again in a few minutes.',
+
+    // Camera / Scan (photo button)
+    frameMedicationTakePhoto: 'Frame the medication then take the photo',
+    takePhoto: 'Take a photo',
+    cameraThenAnalyze: 'Camera then analyze',
+
     // Live Camera Scanner
     positionMedication: 'Position the medication in front of the camera',
     stop: 'Stop',
@@ -852,6 +906,10 @@ export const translations = {
     precautions: 'الاحتياطات',
     storage: 'التخزين',
     packagingLanguage: 'لغة العبوة',
+    overdose: 'جرعة زائدة',
+    additionalInfo: 'معلومات إضافية',
+    resultsCount: '{count} نتيجة/نتائج',
+    expiryShort: 'انتهاء',
     composition: 'التركيبة',
     excipients: 'المواد المساعدة',
     suggestions: 'اقتراحات',
@@ -938,6 +996,29 @@ export const translations = {
     faqQuestion2: 'ما هي الآثار الجانبية للأموكسيسيلين؟',
     faqQuestion3: 'كيف أحفظ الأنسولين بشكل صحيح؟',
     
+    // Errors (i18n)
+    errorTimeoutTitle: 'انتهت مهلة الطلب',
+    errorTimeoutMessage: 'الطلب يستغرق وقتاً طويلاً. أعد المحاولة بعد قليل.',
+    errorNetworkTitle: 'مشكلة في الاتصال',
+    errorNetworkMessage: 'تحقق من اتصالك بالإنترنت وأعد المحاولة.',
+    errorNetworkAction: 'التحقق من الاتصال',
+    errorServerTitle: 'خطأ في الخادم',
+    errorServerMessage: 'حدث خطأ. أعد المحاولة.',
+    errorGenericTitle: 'حدث خطأ',
+    errorGenericMessage: 'حدثت مشكلة غير متوقعة. أعد المحاولة.',
+    errorCreditsTitle: 'رصيد غير كافٍ',
+    errorCreditsMessage: 'أضف رصيداً للمتابعة.',
+    errorCreditsAction: 'إضافة رصيد',
+    errorTooManyRequestsTitle: 'طلبات كثيرة',
+    errorTooManyRequestsMessage: 'انتظر دقيقة قبل إعادة المحاولة.',
+    errorUnavailableTitle: 'الخدمة غير متوفرة',
+    errorUnavailableMessage: 'أعد المحاولة بعد دقائق.',
+
+    // Camera / Scan
+    frameMedicationTakePhoto: 'ضَع الدواء في الإطار ثم التقط الصورة',
+    takePhoto: 'التقط صورة',
+    cameraThenAnalyze: 'الكاميرا ثم التحليل',
+
     // Live Camera Scanner
     positionMedication: 'ضع الدواء أمام الكاميرا',
     stop: 'إيقاف',
@@ -1197,6 +1278,10 @@ export const translations = {
     precautions: 'Önlemler',
     storage: 'Saklama',
     packagingLanguage: 'Ambalaj Dili',
+    overdose: 'Aşırı doz',
+    additionalInfo: 'Ek bilgi',
+    resultsCount: '{count} sonuç',
+    expiryShort: 'Skt.',
     composition: 'Bileşim',
     excipients: 'Eksipiyanlar',
     suggestions: 'Öneriler',
@@ -1283,6 +1368,29 @@ export const translations = {
     faqQuestion2: 'Amoksisilin yan etkileri nelerdir?',
     faqQuestion3: 'İnsülin nasıl doğru saklanır?',
     
+    // Errors (i18n)
+    errorTimeoutTitle: 'İstek zaman aşımına uğradı',
+    errorTimeoutMessage: 'İstek çok uzun sürüyor. Birazdan tekrar deneyin.',
+    errorNetworkTitle: 'Bağlantı sorunu',
+    errorNetworkMessage: 'İnternet bağlantınızı kontrol edin ve tekrar deneyin.',
+    errorNetworkAction: 'Bağlantıyı kontrol et',
+    errorServerTitle: 'Sunucu hatası',
+    errorServerMessage: 'Bir sorun oluştu. Lütfen tekrar deneyin.',
+    errorGenericTitle: 'Bir hata oluştu',
+    errorGenericMessage: 'Beklenmeyen bir sorun oluştu. Lütfen tekrar deneyin.',
+    errorCreditsTitle: 'Yetersiz kredi',
+    errorCreditsMessage: 'Devam etmek için kredi ekleyin.',
+    errorCreditsAction: 'Kredi ekle',
+    errorTooManyRequestsTitle: 'Çok fazla istek',
+    errorTooManyRequestsMessage: 'Tekrar denemeden önce bir dakika bekleyin.',
+    errorUnavailableTitle: 'Hizmet kullanılamıyor',
+    errorUnavailableMessage: 'Birkaç dakika içinde tekrar deneyin.',
+
+    // Camera / Scan
+    frameMedicationTakePhoto: 'İlacı çerçeveleyin ve fotoğrafı çekin',
+    takePhoto: 'Fotoğraf çek',
+    cameraThenAnalyze: 'Kamera sonra analiz',
+
     // Live Camera Scanner
     positionMedication: 'İlacı kameranın önüne yerleştirin',
     stop: 'Durdur',

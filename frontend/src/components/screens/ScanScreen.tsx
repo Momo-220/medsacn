@@ -222,10 +222,10 @@ export function ScanScreen() {
                     <Camera className="w-7 h-7 sm:w-8 sm:h-8 text-white" strokeWidth={2} />
                   </div>
                   <p className="text-white font-bold text-sm sm:text-base mb-1">
-                    {language === 'fr' ? 'Prendre une photo' : 'Take a photo'}
+                    {t('takePhoto')}
                   </p>
                   <p className="text-white/80 text-xs">
-                    {language === 'fr' ? 'Caméra puis analyse' : 'Camera then analyze'}
+                    {t('cameraThenAnalyze')}
                   </p>
                 </button>
               </div>

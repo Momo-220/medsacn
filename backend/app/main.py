@@ -209,7 +209,7 @@ if settings.ENVIRONMENT == "development":
 @app.get("/health", tags=["System"])
 @limiter.exempt
 async def health_check(request: Request) -> Dict[str, str]:
-    """Health check endpoint for Cloud Run"""
+    """Health check endpoint (Render / load balancer)"""
     return {
         "status": "healthy",
         "service": "AI MediScan",
@@ -241,13 +241,12 @@ app.include_router(api_router, prefix=settings.API_PREFIX)
 if __name__ == "__main__":
     import uvicorn
     
-    # IMPORTANT: reload=False pour éviter les coûts inutiles en production
-    # L'auto-reload consomme des ressources et peut coûter cher sur Cloud Run
+    # reload=False en production (Render)
     uvicorn.run(
         "app.main:app",
         host=settings.API_HOST,
         port=settings.API_PORT,
-        reload=False,  # DÉSACTIVÉ - Pas d'auto-reload pour économiser les coûts
+        reload=False,
         log_level="info",
     )
 

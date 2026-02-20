@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { X, AlertCircle, AlertTriangle, Info } from 'lucide-react';
 import { ErrorInfo } from '@/lib/errors/errorTranslator';
+import { useLanguage } from '@/contexts/LanguageContext';
+import type { TranslationKey } from '@/lib/i18n/translations';
 
 interface ErrorToastProps {
   error: ErrorInfo;
@@ -11,7 +13,12 @@ interface ErrorToastProps {
 }
 
 export function ErrorToast({ error, onClose, duration = 5000 }: ErrorToastProps) {
+  const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
+
+  const title = error.titleKey ? t(error.titleKey as TranslationKey) : error.title;
+  const message = error.messageKey ? t(error.messageKey as TranslationKey) : error.message;
+  const actionLabel = error.actionKey ? t(error.actionKey as TranslationKey) : error.action;
 
   useEffect(() => {
     setTimeout(() => setIsVisible(true), 10);
@@ -71,20 +78,20 @@ export function ErrorToast({ error, onClose, duration = 5000 }: ErrorToastProps)
         </div>
         
         <div className="flex-1 min-w-0">
-          {error.title && (
+          {title && (
             <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-              {error.title}
+              {title}
             </h4>
           )}
           <p className="text-base text-gray-700 dark:text-gray-200 leading-relaxed font-medium">
-            {error.message}
+            {message}
           </p>
-          {error.action && (
+          {actionLabel && (
             <button
               onClick={onClose}
               className="mt-4 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
             >
-              {error.action}
+              {actionLabel}
             </button>
           )}
         </div>

@@ -50,7 +50,7 @@ class FirebaseService:
                 cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
                 logger.info(" Using Firebase credentials file")
 
-            # 3) Application Default Credentials (GCP / Cloud Run)
+            # 3) Application Default Credentials (optionnel)
             if cred is None:
                 try:
                     cred = credentials.ApplicationDefault()
