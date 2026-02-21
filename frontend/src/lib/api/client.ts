@@ -34,6 +34,19 @@ class APIClient {
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
+        const isTimeoutOrNetwork =
+          error.code === 'ECONNABORTED' ||
+          error.code === 'ERR_NETWORK' ||
+          error.message?.includes('timeout') ||
+          error.message?.includes('Network Error') ||
+          error.message?.includes('Failed to fetch');
+        const backendWaking = typeof window !== 'undefined' && !!(window as any).__MEDISCAN_BACKEND_WAKING__;
+
+        // Pendant le cold start, ne pas afficher l'alerte timeout/réseau : le skeleton fait office de feedback
+        if (backendWaking && isTimeoutOrNetwork) {
+          return Promise.reject(error);
+        }
+
         // Afficher l'erreur seulement si l'utilisateur est connecté (token présent)
         if (typeof window !== 'undefined' && this.getStoredToken()) {
           try {

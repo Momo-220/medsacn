@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useHealth } from '@/contexts/HealthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 export function HealthDashboard() {
   const { stats, loading } = useHealth();
@@ -25,7 +26,11 @@ export function HealthDashboard() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl p-5 h-32 animate-pulse" />
+            <div key={i} className="card dark:bg-gray-800 dark:border-gray-700 p-5 h-32 overflow-hidden">
+              <Skeleton width="w-12" height="h-12" rounded="xl" className="mb-4" />
+              <Skeleton height="h-8" width="w-16" rounded="md" className="mb-2" />
+              <Skeleton height="h-4" width="w-full" rounded="md" />
+            </div>
           ))}
         </div>
       </div>

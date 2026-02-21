@@ -12,6 +12,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { translateCategory, formatSimpleDate } from '@/lib/i18n/utils';
 import { getImageUrl } from '@/lib/imageUrl';
 import type { Language } from '@/lib/i18n/translations';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 const USER_NAME_STORAGE_KEY = 'mediscan_user_name';
 
@@ -164,7 +165,11 @@ export function HomeScreen() {
             </p>
           </div>
           {/* Badge gemmes - clic affiche date de renouvellement */}
-          {!loading && (
+          {loading ? (
+            <div className="flex-shrink-0">
+              <Skeleton width="w-16" height="h-10" rounded="full" className="min-w-[4rem]" />
+            </div>
+          ) : (
             <div className="relative flex-shrink-0">
               <button
                 type="button"
@@ -235,9 +240,18 @@ export function HomeScreen() {
 
           <div className="space-y-3">
             {loadingScans ? (
-              <div className="card p-4 text-center text-text-secondary dark:text-gray-400">
-                {t('loading') || 'Chargement...'}
-              </div>
+              <>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="card dark:bg-gray-800 dark:border-gray-700 p-4 flex items-center gap-4">
+                    <Skeleton width="w-12" height="h-12" rounded="xl" className="flex-shrink-0" />
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <Skeleton height="h-4" width="w-3/4" rounded="md" />
+                      <Skeleton height="h-4" width="w-1/2" rounded="md" />
+                      <Skeleton height="h-3" width="w-1/3" rounded="md" />
+                    </div>
+                  </div>
+                ))}
+              </>
             ) : recentScans.length > 0 ? (
               recentScans.map((scan, index) => (
                 <ScanItem

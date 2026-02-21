@@ -73,6 +73,8 @@ const config: Config = {
         'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
         'breathing': 'breathing 3s ease-in-out infinite',
         'float': 'float 6s ease-in-out infinite',
+        'shimmer': 'shimmer 2s ease-in-out infinite',
+        'shimmer-bg': 'shimmerBg 2s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -94,6 +96,14 @@ const config: Config = {
         float: {
           '0%, 100%': { transform: 'translateY(0px)' },
           '50%': { transform: 'translateY(-10px)' },
+        },
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+        shimmerBg: {
+          '0%': { backgroundPosition: '200% 0' },
+          '100%': { backgroundPosition: '-200% 0' },
         },
       },
     },
