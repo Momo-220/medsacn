@@ -19,6 +19,7 @@ import { AvatarPicker } from '@/components/ui/AvatarPicker';
 import { InstallPromptModal } from '@/components/ui/InstallPromptModal';
 import { InstallAppModal } from '@/components/ui/InstallAppModal';
 import { SignUpModal } from '@/components/ui/SignUpModal';
+import { BackendWakeOverlay } from '@/components/ui/BackendWakeOverlay';
 import { useNavigation } from '@/lib/navigation/NavigationContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { analytics } from '@/lib/analytics';
@@ -210,6 +211,7 @@ export default function App() {
 
   return (
     <ErrorToastContainer>
+      <BackendWakeOverlay />
       {/* Popup "Voulez-vous installer l'app ?" (première fois) */}
       {showInstallPrompt && (
         <InstallPromptModal
