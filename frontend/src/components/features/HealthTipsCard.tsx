@@ -141,41 +141,6 @@ export function HealthTipsCard({ skeleton = false }: { skeleton?: boolean }) {
   const [nextReminder, setNextReminder] = useState<NextReminder | null>(null);
   const [loadingReminder, setLoadingReminder] = useState(true);
 
-  if (skeleton) {
-    return (
-      <div className="space-y-4">
-        <div className="bg-gradient-to-br from-primary/10 to-primary/5 dark:from-blue-900/20 dark:to-blue-800/10 rounded-3xl p-4 sm:p-5 border border-primary/20 dark:border-blue-800/30">
-          <div className="flex items-start gap-4">
-            <Skeleton width="w-12" height="h-12" rounded="xl" className="flex-shrink-0" />
-            <div className="flex-1 min-w-0 space-y-2">
-              <Skeleton height="h-4" width="w-32" rounded="md" />
-              <Skeleton height="h-5" width="w-3/4" rounded="md" />
-              <Skeleton height="h-4" width="w-1/2" rounded="md" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/10 rounded-3xl p-4 sm:p-5 border border-green-100/50 dark:border-green-800/30">
-          <div className="flex items-start gap-4">
-            <Skeleton width="w-12" height="h-12" rounded="xl" className="flex-shrink-0" />
-            <div className="flex-1 min-w-0 space-y-2">
-              <Skeleton height="h-4" width="w-24" rounded="md" />
-              <Skeleton height="h-5" width="w-full" rounded="md" />
-              <Skeleton height="h-4" width="w-5/6" rounded="md" />
-            </div>
-          </div>
-          <div className="flex items-center justify-between mt-4 pt-3 border-t border-green-200/50 dark:border-green-800/30">
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} height="h-1" width="w-4" rounded="full" />
-              ))}
-            </div>
-            <Skeleton height="h-4" width="w-12" rounded="md" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTip((prev) => (prev + 1) % healthTips.length);
@@ -219,6 +184,41 @@ export function HealthTipsCard({ skeleton = false }: { skeleton?: boolean }) {
   }, [user]);
 
   const tip = healthTips[currentTip];
+
+  if (skeleton) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-gradient-to-br from-primary/10 to-primary/5 dark:from-blue-900/20 dark:to-blue-800/10 rounded-3xl p-4 sm:p-5 border border-primary/20 dark:border-blue-800/30">
+          <div className="flex items-start gap-4">
+            <Skeleton width="w-12" height="h-12" rounded="xl" className="flex-shrink-0" />
+            <div className="flex-1 min-w-0 space-y-2">
+              <Skeleton height="h-4" width="w-32" rounded="md" />
+              <Skeleton height="h-5" width="w-3/4" rounded="md" />
+              <Skeleton height="h-4" width="w-1/2" rounded="md" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/10 rounded-3xl p-4 sm:p-5 border border-green-100/50 dark:border-green-800/30">
+          <div className="flex items-start gap-4">
+            <Skeleton width="w-12" height="h-12" rounded="xl" className="flex-shrink-0" />
+            <div className="flex-1 min-w-0 space-y-2">
+              <Skeleton height="h-4" width="w-24" rounded="md" />
+              <Skeleton height="h-5" width="w-full" rounded="md" />
+              <Skeleton height="h-4" width="w-5/6" rounded="md" />
+            </div>
+          </div>
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-green-200/50 dark:border-green-800/30">
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} height="h-1" width="w-4" rounded="full" />
+              ))}
+            </div>
+            <Skeleton height="h-4" width="w-12" rounded="md" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

@@ -47,54 +47,13 @@ interface ReminderFormData {
 
 const REMINDERS_COMING_SOON = true;
 
-export function MedicationReminders({ skeleton = false }: { skeleton?: boolean }) {
+export interface MedicationRemindersProps {
+  skeleton?: boolean;
+}
+
+export function MedicationReminders(props: MedicationRemindersProps) {
+  const { skeleton = false } = props;
   const { t, language } = useLanguage();
-
-  if (skeleton) {
-    return (
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-        <div className="flex items-center gap-3 mb-2">
-          <Skeleton width="w-12" height="h-12" rounded="xl" className="flex-shrink-0" />
-          <div className="flex-1 space-y-2 min-w-0">
-            <Skeleton height="h-4" width="w-40" rounded="md" />
-            <Skeleton height="h-3" width="w-28" rounded="md" />
-          </div>
-        </div>
-        <Skeleton height="h-4" width="w-full" rounded="md" className="mt-3" />
-      </div>
-    );
-  }
-
-  if (REMINDERS_COMING_SOON) {
-    return (
-      <div className="relative rounded-2xl overflow-hidden">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 opacity-60 pointer-events-none select-none">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/80 dark:from-blue-500 dark:to-blue-600 flex items-center justify-center">
-              <Bell className="w-6 h-6 text-white" strokeWidth={2.5} />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-text-primary dark:text-gray-100">
-                {t('medicationRemindersTitle')}
-              </h3>
-              <p className="text-xs text-text-secondary dark:text-gray-400 mt-0.5">
-                {t('remindersPending')} • —
-              </p>
-            </div>
-          </div>
-          <p className="text-sm text-text-secondary dark:text-gray-400">
-            {t('noRemindersConfigured')}
-          </p>
-        </div>
-        <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/20 dark:bg-black/30">
-          <span className="px-4 py-2 rounded-full bg-white/95 dark:bg-gray-800/95 text-sm font-bold text-text-primary dark:text-gray-100 shadow-lg">
-            {language === 'fr' ? 'Bientôt' : 'Coming soon'}
-          </span>
-        </div>
-      </div>
-    );
-  }
-
   const { refreshStats } = useHealth();
   const { user, getIdToken, signOut } = useAuth();
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -322,6 +281,51 @@ export function MedicationReminders({ skeleton = false }: { skeleton?: boolean }
   const adherence = reminders.length > 0 
     ? Math.round((takenCount / reminders.length) * 100) 
     : 0;
+
+  if (skeleton) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="flex items-center gap-3 mb-2">
+          <Skeleton width="w-12" height="h-12" rounded="xl" className="flex-shrink-0" />
+          <div className="flex-1 space-y-2 min-w-0">
+            <Skeleton height="h-4" width="w-40" rounded="md" />
+            <Skeleton height="h-3" width="w-28" rounded="md" />
+          </div>
+        </div>
+        <Skeleton height="h-4" width="w-full" rounded="md" className="mt-3" />
+      </div>
+    );
+  }
+
+  if (REMINDERS_COMING_SOON) {
+    return (
+      <div className="relative rounded-2xl overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 opacity-60 pointer-events-none select-none">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/80 dark:from-blue-500 dark:to-blue-600 flex items-center justify-center">
+              <Bell className="w-6 h-6 text-white" strokeWidth={2.5} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-text-primary dark:text-gray-100">
+                {t('medicationRemindersTitle')}
+              </h3>
+              <p className="text-xs text-text-secondary dark:text-gray-400 mt-0.5">
+                {t('remindersPending')} • —
+              </p>
+            </div>
+          </div>
+          <p className="text-sm text-text-secondary dark:text-gray-400">
+            {t('noRemindersConfigured')}
+          </p>
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/20 dark:bg-black/30">
+          <span className="px-4 py-2 rounded-full bg-white/95 dark:bg-gray-800/95 text-sm font-bold text-text-primary dark:text-gray-100 shadow-lg">
+            {language === 'fr' ? 'Bientôt' : 'Coming soon'}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
