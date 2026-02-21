@@ -9,6 +9,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
+import asyncio
 import structlog
 from typing import Dict
 
@@ -29,37 +30,68 @@ logger = structlog.get_logger()
 
 
 
+async def _background_init_heavy_services():
+    """
+    Chronologie de chargement : Gemini et Storage en arrière-plan.
+    L'app répond à /health et aux requêtes auth dès que MongoDB + Firebase sont prêts.
+    Scan/chat déclenchent initialize() si pas encore prêt (idempotent).
+    """
+    from app.services.gemini_service import gemini_service
+    from app.services.storage_service import storage_service
+    try:
+        await gemini_service.initialize()
+        logger.info("Background init: Gemini ready")
+    except Exception as e:
+        logger.warning("Background Gemini init failed (scan/chat will init on first use)", error=str(e))
+    try:
+        await storage_service.initialize()
+        logger.info("Background init: Storage ready")
+    except Exception as e:
+        logger.warning("Background Storage init failed (scan will init on first use)", error=str(e))
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan events"""
-    # Startup
+    """
+    Chronologie de démarrage (optimisation cold start / 512 Mo):
+    1. MongoDB (connexion) – priorité
+    2. Firebase (auth requise pour credits/history/reminders)
+    3. App prête → yield → /health et routes auth répondent tout de suite
+    4. En arrière-plan: Gemini puis Storage (scan/chat peuvent les initialiser au premier besoin si pas encore prêts)
+    """
     logger.info("AI MediScan Backend Starting...", environment=settings.ENVIRONMENT)
-    
-    # Initialize services
+
     from app.services.firebase_service import firebase_service
     from app.services.gemini_service import gemini_service
     from app.services.storage_service import storage_service
     from app.db.mongodb import get_db
 
-    # MongoDB (init on first use)
+    # 1. MongoDB (obligatoire pour DB)
     try:
         get_db()
     except Exception as e:
         logger.error("Failed to connect to MongoDB", error=str(e))
 
+    # 2. Firebase (obligatoire pour auth – credits, history, reminders)
     await firebase_service.initialize()
-    await gemini_service.initialize()
-    try:
-        await storage_service.initialize()
-    except Exception as e:
-        logger.warning("Storage init failed (scan will work, images may not persist)", error=str(e))
-    
+
     logger.info("AI MediScan Ready - Creating emotions, not just apps")
-    
+
+    # 3. Lancer Gemini + Storage en arrière-plan (n'attend pas pour accepter les requêtes)
+    background_task = asyncio.create_task(_background_init_heavy_services())
+    app.state._background_init_task = background_task
+
     yield
-    
+
     # Shutdown
     logger.info("AI MediScan Shutting Down Gracefully")
+    if hasattr(app.state, "_background_init_task"):
+        background_task = app.state._background_init_task
+        background_task.cancel()
+        try:
+            await background_task
+        except asyncio.CancelledError:
+            pass
     await firebase_service.cleanup()
     await gemini_service.cleanup()
 
