@@ -24,6 +24,7 @@ import { CustomDropdown } from '@/components/ui/CustomDropdown';
 import { CustomTimePicker } from '@/components/ui/CustomTimePicker';
 import { PermissionModal } from '@/components/ui/PermissionModal';
 import { TrialUpgradePrompt } from '@/components/ui/TrialUpgradePrompt';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 interface Reminder {
   id: string;
@@ -46,8 +47,23 @@ interface ReminderFormData {
 
 const REMINDERS_COMING_SOON = true;
 
-export function MedicationReminders() {
+export function MedicationReminders({ skeleton = false }: { skeleton?: boolean }) {
   const { t, language } = useLanguage();
+
+  if (skeleton) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="flex items-center gap-3 mb-2">
+          <Skeleton width="w-12" height="h-12" rounded="xl" className="flex-shrink-0" />
+          <div className="flex-1 space-y-2 min-w-0">
+            <Skeleton height="h-4" width="w-40" rounded="md" />
+            <Skeleton height="h-3" width="w-28" rounded="md" />
+          </div>
+        </div>
+        <Skeleton height="h-4" width="w-full" rounded="md" className="mt-3" />
+      </div>
+    );
+  }
 
   if (REMINDERS_COMING_SOON) {
     return (

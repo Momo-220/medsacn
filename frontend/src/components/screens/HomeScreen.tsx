@@ -5,6 +5,7 @@ import { User, Gem, Pill } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useNavigation } from '@/lib/navigation/NavigationContext';
 import { useCredits } from '@/contexts/CreditsContext';
+import { useHealth } from '@/contexts/HealthContext';
 import { HealthDashboard } from '@/components/features/HealthDashboard';
 import { MedicationReminders } from '@/components/features/MedicationReminders';
 import { HealthTipsCard } from '@/components/features/HealthTipsCard';
@@ -84,9 +85,22 @@ export function HomeScreen() {
   const { user } = useAuth();
   const { navigateTo } = useNavigation();
   const { credits, nextResetAt, loading } = useCredits();
+  const { loading: healthLoading } = useHealth();
   const { t, language } = useLanguage();
   const [showCreditsPopover, setShowCreditsPopover] = useState(false);
   const [localName, setLocalName] = useState<string | null>(null);
+
+  // Charger les scans récents depuis l'API
+  const [recentScans, setRecentScans] = useState<Array<{
+    medication: string;
+    type: string;
+    date: Date;
+    time: string;
+    image?: string | null;
+  }>>([]);
+  const [loadingScans, setLoadingScans] = useState(false);
+
+  const pageLoading = loading || healthLoading || loadingScans;
 
   // Charger le prénom stocké localement (mode essai)
   useEffect(() => {
@@ -98,16 +112,6 @@ export function HomeScreen() {
   }, []);
 
   const displayName = user?.displayName || localName || '';
-
-  // Charger les scans récents depuis l'API
-  const [recentScans, setRecentScans] = useState<Array<{
-    medication: string;
-    type: string;
-    date: Date;
-    time: string;
-    image?: string | null;
-  }>>([]);
-  const [loadingScans, setLoadingScans] = useState(false);
 
   const { getIdToken } = useAuth();
 
@@ -153,19 +157,29 @@ export function HomeScreen() {
       {/* Header - Responsive : texte | gemmes | avatar avec espacement */}
       <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pt-8 pb-6">
         <div className="flex items-start justify-between gap-3 sm:gap-6">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary dark:text-gray-100">
-              {new Date().getHours() < 12 ? t('goodMorning') : t('goodEvening')}
-            </h1>
-            <p className="text-lg sm:text-xl font-semibold text-purple-600 dark:text-purple-400 mt-0.5 truncate">
-              {displayName}
-            </p>
-            <p className="text-text-secondary dark:text-gray-300 text-sm mt-1">
-              {t('howDoYouFeel')}
-            </p>
+          <div className="flex-1 min-w-0 space-y-2">
+            {pageLoading ? (
+              <>
+                <Skeleton height="h-8 sm:h-9" width="w-48 sm:w-56" rounded="lg" />
+                <Skeleton height="h-6 sm:h-7" width="w-32" rounded="md" />
+                <Skeleton height="h-4" width="w-40" rounded="md" />
+              </>
+            ) : (
+              <>
+                <h1 className="text-2xl sm:text-3xl font-bold text-text-primary dark:text-gray-100">
+                  {new Date().getHours() < 12 ? t('goodMorning') : t('goodEvening')}
+                </h1>
+                <p className="text-lg sm:text-xl font-semibold text-purple-600 dark:text-purple-400 mt-0.5 truncate">
+                  {displayName}
+                </p>
+                <p className="text-text-secondary dark:text-gray-300 text-sm mt-1">
+                  {t('howDoYouFeel')}
+                </p>
+              </>
+            )}
           </div>
           {/* Badge gemmes - clic affiche date de renouvellement */}
-          {loading ? (
+          {pageLoading || loading ? (
             <div className="flex-shrink-0">
               <Skeleton width="w-16" height="h-10" rounded="full" className="min-w-[4rem]" />
             </div>
@@ -196,46 +210,59 @@ export function HomeScreen() {
             </div>
           )}
           {/* Avatar / Profil */}
-          <button 
-            onClick={() => navigateTo('profile')}
-            className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-primary/10 dark:bg-gray-800 hover:bg-primary/20 dark:hover:bg-gray-700 transition-colors flex items-center justify-center"
-          >
-            {!user?.isAnonymous && user?.photoURL ? (
-              <img
-                src={user.photoURL}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <User className="w-7 h-7 text-text-primary dark:text-gray-100" />
-            )}
-          </button>
+          {pageLoading ? (
+            <Skeleton width="w-11 sm:w-12" height="h-11 sm:h-12" rounded="full" className="flex-shrink-0" />
+          ) : (
+            <button 
+              onClick={() => navigateTo('profile')}
+              className="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-primary/10 dark:bg-gray-800 hover:bg-primary/20 dark:hover:bg-gray-700 transition-colors flex items-center justify-center"
+            >
+              {!user?.isAnonymous && user?.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-7 h-7 text-text-primary dark:text-gray-100" />
+              )}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Main Content */}
       <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
-        {/* Health Tips */}
-        <HealthTipsCard />
+        {/* Health Tips - même structure, shimmer quand chargement */}
+        <HealthTipsCard skeleton={pageLoading} />
 
-        {/* Health Dashboard */}
+        {/* Health Dashboard - déjà skeleton quand healthLoading */}
         <HealthDashboard />
 
-        {/* Medication Reminders */}
-        <MedicationReminders />
+        {/* Medication Reminders - même structure, shimmer quand chargement */}
+        <MedicationReminders skeleton={pageLoading} />
 
         {/* Recent Scans Section - En bas */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-text-primary dark:text-gray-100">
-              {t('recentScans')}
-            </h2>
-            <button
-              onClick={() => navigateTo('pharmacy')}
-              className="text-sm text-primary dark:text-blue-400 font-semibold hover:underline"
-            >
-              {t('seeAll')}
-            </button>
+            {loadingScans ? (
+              <>
+                <Skeleton height="h-7" width="w-40" rounded="lg" />
+                <Skeleton height="h-9" width="w-20" rounded="lg" />
+              </>
+            ) : (
+              <>
+                <h2 className="text-xl font-bold text-text-primary dark:text-gray-100">
+                  {t('recentScans')}
+                </h2>
+                <button
+                  onClick={() => navigateTo('pharmacy')}
+                  className="text-sm text-primary dark:text-blue-400 font-semibold hover:underline"
+                >
+                  {t('seeAll')}
+                </button>
+              </>
+            )}
           </div>
 
           <div className="space-y-3">
