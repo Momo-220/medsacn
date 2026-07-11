@@ -488,7 +488,7 @@ export function SettingsScreen() {
             <li>{language === 'fr' ? 'Problèmes de notifications' : language === 'en' ? 'Notification issues' : language === 'ar' ? 'مشاكل الإشعارات' : 'Bildirim sorunları'}</li>
           </ul>
           <p className="pt-4 text-text-primary font-semibold border-t border-glass-border/30">
-            {language === 'fr' ? 'Contact :' : language === 'en' ? 'Contact:' : language === 'ar' ? 'التواصل:' : 'İletişim:'} support@mediscan.app
+            {language === 'fr' ? 'Contact :' : language === 'en' ? 'Contact:' : language === 'ar' ? 'التواصل:' : 'İletişim:'} support@medscan.cc
           </p>
           <div className="pt-2 flex justify-end">
             <a 

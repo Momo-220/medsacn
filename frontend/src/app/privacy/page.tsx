@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { 
   ArrowLeft, 
@@ -24,8 +23,8 @@ export default function PrivacyPage() {
     backToApp: lang === 'fr' ? "Retour à l'application" : 'Back to App',
     introTitle: lang === 'fr' ? 'Engagement de Confidentialité' : 'Privacy Commitment',
     introText: lang === 'fr' ? 
-      "Chez MediScan, votre santé et la confidentialité de vos données sont au cœur de notre démarche. Cette politique explique comment nous recueillons, utilisons, protégeons et gérons vos informations lors de l'utilisation de notre application mobile et web." :
-      "At MediScan, your health and data privacy are at the heart of our mission. This policy explains how we collect, use, protect, and manage your information when you use our mobile and web application.",
+      "Chez MedScan, votre santé et la confidentialité de vos données sont au cœur de notre démarche. Cette politique explique comment nous recueillons, utilisons, protégeons et gérons vos informations lors de l'utilisation de notre application mobile et web." :
+      "At MedScan, your health and data privacy are at the heart of our mission. This policy explains how we collect, use, protect, and manage your information when you use our mobile and web application.",
     contactTitle: lang === 'fr' ? 'Une question sur vos données ?' : 'Any questions about your data?',
     contactDesc: lang === 'fr' ? 'Pour toute demande d\'accès, de modification ou de suppression de vos données, écrivez-nous.' : 'For any request regarding access, modification, or deletion of your data, contact us.',
     contactBtn: lang === 'fr' ? 'Nous contacter' : 'Contact Us',
@@ -101,11 +100,11 @@ export default function PrivacyPage() {
       icon: <Stethoscope className="w-5 h-5 text-primary" />,
       content: lang === 'fr' ? (
         <p>
-          MediScan est un outil d'accompagnement et d'information pharmaceutique basé sur l'Intelligence Artificielle. Les analyses et suggestions ne constituent pas des diagnostics médicaux, des prescriptions ou des avis de professionnels de santé. Consultez toujours un médecin ou un pharmacien pour toute question d'ordre médical.
+          MedScan est un outil d'accompagnement et d'information pharmaceutique basé sur l'Intelligence Artificielle. Les analyses et suggestions ne constituent pas des diagnostics médicaux, des prescriptions ou des avis de professionnels de santé. Consultez toujours un médecin ou un pharmacien pour toute question d'ordre médical.
         </p>
       ) : (
         <p>
-          MediScan is an educational and information companion tool based on Artificial Intelligence. Analyses and suggestions do not constitute medical diagnoses, prescriptions, or advice from healthcare professionals. Always consult a doctor or pharmacist for any medical questions.
+          MedScan is an educational and information companion tool based on Artificial Intelligence. Analyses and suggestions do not constitute medical diagnoses, prescriptions, or advice from healthcare professionals. Always consult a doctor or pharmacist for any medical questions.
         </p>
       )
     }
@@ -193,7 +192,7 @@ export default function PrivacyPage() {
             {t.contactDesc}
           </p>
           <a 
-            href="mailto:support@mediscan.app?subject=Privacy%20MediScan"
+            href="mailto:support@medscan.cc?subject=Privacy%20MedScan"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-primary/20 text-text-primary dark:text-slate-200 hover:bg-primary/5 transition-all text-xs font-bold shadow-sm"
           >
             {t.contactBtn}
@@ -203,10 +202,10 @@ export default function PrivacyPage() {
 
       {/* Footer */}
       <div className="text-center text-xs text-text-muted dark:text-slate-500 flex flex-col md:flex-row justify-between items-center gap-3">
-        <span>© {new Date().getFullYear()} MediScan. All rights reserved.</span>
+        <span>© {new Date().getFullYear()} MedScan. All rights reserved.</span>
         <div className="flex gap-4">
           <Link href="/support" className="hover:text-primary transition-colors">Support Center</Link>
-          <a href="mailto:support@mediscan.app" className="hover:text-primary transition-colors">Contact</a>
+          <a href="mailto:support@medscan.cc" className="hover:text-primary transition-colors">Contact</a>
         </div>
       </div>
     </div>

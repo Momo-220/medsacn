@@ -41,8 +41,8 @@ const FAQS: FAQItem[] = [
       en: "Is the AI assistant's information reliable?"
     },
     answer: {
-      fr: "L'assistant MediScan est entraîné sur des données pharmaceutiques validées. Cependant, les réponses de l'IA sont données à titre purement informatif et ne remplacent en aucun cas l'avis de votre médecin ou de votre pharmacien.",
-      en: "The MediScan assistant is trained on validated pharmaceutical data. However, the AI's answers are provided for informational purposes only and under no circumstances replace the advice of your doctor or pharmacist."
+      fr: "L'assistant MedScan est entraîné sur des données pharmaceutiques validées. Cependant, les réponses de l'IA sont données à titre purement informatif et ne remplacent en aucun cas l'avis de votre médecin ou de votre pharmacien.",
+      en: "The MedScan assistant is trained on validated pharmaceutical data. However, the AI's answers are provided for informational purposes only and under no circumstances replace the advice of your doctor or pharmacist."
     },
     icon: <Brain className="w-5 h-5 text-primary" />
   },
@@ -149,7 +149,7 @@ export default function SupportPage() {
             <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-md animate-pulse" />
             <Image 
               src="/logo.png" 
-              alt="MediScan Logo" 
+              alt="MedScan Logo" 
               width={80} 
               height={80} 
               className="relative object-contain rounded-2xl"
@@ -157,7 +157,7 @@ export default function SupportPage() {
             />
           </motion.div>
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-text-primary dark:text-slate-100 font-poppins">
-            MediScan <span className="text-primary font-normal">{t.title}</span>
+            MedScan <span className="text-primary font-normal">{t.title}</span>
           </h1>
           <p className="text-text-secondary dark:text-slate-300 mt-3 max-w-xl text-sm md:text-base leading-relaxed">
             {t.subtitle}
@@ -244,7 +244,7 @@ export default function SupportPage() {
             </p>
             
             <a 
-              href="mailto:support@mediscan.app?subject=Support%20MediScan" 
+              href="mailto:support@medscan.cc?subject=Support%20MedScan" 
               className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl bg-primary text-white hover:bg-primary-dark transition-all duration-350 font-semibold shadow-button hover:shadow-card-hover text-sm"
             >
               <Mail className="w-4 h-4" />
@@ -256,7 +256,7 @@ export default function SupportPage() {
                 <span className="w-1.5 h-1.5 bg-badge-green rounded-full animate-ping" />
                 {lang === 'fr' ? 'Assistance email disponible 7j/7' : 'Email support available 24/7'}
               </span>
-              <span className="text-xs text-text-muted font-mono">support@mediscan.app</span>
+              <span className="text-xs text-text-muted font-mono">support@medscan.cc</span>
             </div>
           </div>
 
@@ -326,10 +326,10 @@ export default function SupportPage() {
       
       {/* Simple Footer */}
       <div className="text-center text-xs text-text-muted dark:text-slate-500 flex flex-col md:flex-row justify-between items-center gap-3">
-        <span>© {new Date().getFullYear()} MediScan. All rights reserved.</span>
+        <span>© {new Date().getFullYear()} MedScan. All rights reserved.</span>
         <div className="flex gap-4">
           <Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link>
-          <a href="mailto:support@mediscan.app" className="hover:text-primary transition-colors">Contact</a>
+          <a href="mailto:support@medscan.cc" className="hover:text-primary transition-colors">Contact</a>
         </div>
       </div>
     </div>
