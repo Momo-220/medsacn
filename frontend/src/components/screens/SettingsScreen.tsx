@@ -487,9 +487,19 @@ export function SettingsScreen() {
             <li>{language === 'fr' ? 'Utiliser l\'assistant IA' : language === 'en' ? 'Use the AI assistant' : language === 'ar' ? 'استخدام المساعد الذكي' : 'Yapay zeka asistanını kullanın'}</li>
             <li>{language === 'fr' ? 'Problèmes de notifications' : language === 'en' ? 'Notification issues' : language === 'ar' ? 'مشاكل الإشعارات' : 'Bildirim sorunları'}</li>
           </ul>
-          <p className="pt-4 text-text-primary font-semibold">
+          <p className="pt-4 text-text-primary font-semibold border-t border-glass-border/30">
             {language === 'fr' ? 'Contact :' : language === 'en' ? 'Contact:' : language === 'ar' ? 'التواصل:' : 'İletişim:'} support@mediscan.app
           </p>
+          <div className="pt-2 flex justify-end">
+            <a 
+              href="/support" 
+              target="_blank" 
+              className="text-primary hover:underline font-semibold flex items-center gap-1 text-xs"
+            >
+              <span>{language === 'fr' ? 'Ouvrir le centre de support' : 'Open Support Center'}</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </a>
+          </div>
         </div>
       </SettingsModal>
 
@@ -553,6 +563,16 @@ export function SettingsScreen() {
               <strong>{language === 'fr' ? '5. Vos droits' : language === 'en' ? '5. Your rights' : language === 'ar' ? '5. حقوقك' : '5. Haklarınız'}</strong><br />
               {language === 'fr' ? 'Vous pouvez à tout moment demander l\'accès, la modification ou la suppression de vos données.' : language === 'en' ? 'You can request access, modification or deletion of your data at any time.' : language === 'ar' ? 'يمكنك في أي وقت طلب الوصول إلى بياناتك أو تعديلها أو حذفها.' : 'Verilerinize erişim, değişiklik veya silme talebinde istediğiniz zaman bulunabilirsiniz.'}
             </p>
+          </div>
+          <div className="pt-3 border-t border-glass-border/30 flex justify-end">
+            <a 
+              href="/privacy" 
+              target="_blank" 
+              className="text-primary hover:underline font-semibold flex items-center gap-1 text-xs"
+            >
+              <span>{language === 'fr' ? 'Ouvrir la page complète' : 'Open Full Page'}</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </a>
           </div>
         </div>
       </SettingsModal>
