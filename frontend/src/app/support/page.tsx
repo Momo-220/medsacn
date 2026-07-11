@@ -7,7 +7,6 @@ import {
   ArrowLeft, 
   HelpCircle, 
   Mail, 
-  MessageSquare, 
   ShieldAlert, 
   Bell, 
   Camera, 
@@ -171,7 +170,7 @@ export default function SupportPage() {
             type="text" 
             placeholder={t.searchPlaceholder}
             value={searchQuery}
-            onChange={(e) => searchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full px-5 py-3.5 rounded-2xl bg-background-secondary/80 dark:bg-slate-900/60 border border-primary/20 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/50 text-text-primary dark:text-slate-100 transition-all shadow-sm"
           />
         </div>
