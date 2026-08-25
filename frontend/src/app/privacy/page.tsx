@@ -10,7 +10,8 @@ import {
   Trash2, 
   HelpCircle,
   Stethoscope,
-  Globe
+  Globe,
+  Clock
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -83,20 +84,49 @@ export default function PrivacyPage() {
       )
     },
     {
-      title: lang === 'fr' ? "4. Vos Droits & Suppression" : "4. Your Rights & Deletion",
+      title: lang === 'fr' ? "4. Conservation et suppression des données" : "4. Data Retention & Deletion",
+      icon: <Clock className="w-5 h-5 text-primary" />,
+      content: lang === 'fr' ? (
+        <div className="space-y-3">
+          <p>Nous veillons à ce que vos données personnelles ne soient pas conservées plus longtemps que nécessaire aux finalités pour lesquelles elles sont traitées :</p>
+          <ul className="list-disc list-inside space-y-1.5 ml-2">
+            <li><strong>Identifiants de compte :</strong> Vos informations de compte (adresse e-mail et profil Firebase Auth) et vos crédits d'utilisation sont conservés tant que votre compte est actif.</li>
+            <li><strong>Historique d'analyse :</strong> Pour optimiser le stockage, nous limitons l'historique à un maximum de 50 scans de médicaments par utilisateur. Les scans les plus anciens sont automatiquement et définitivement supprimés lors de l'enregistrement de nouveaux scans.</li>
+            <li><strong>Images de médicaments :</strong> Les images des boîtes de médicaments que vous téléchargez sont stockées de façon sécurisée (via localement en développement et GridFS en production) et sont conservées tant que le scan associé fait partie de votre historique de 50 éléments.</li>
+            <li><strong>Rappels de prise :</strong> Les horaires et configurations de vos rappels sont conservés jusqu'à ce que vous supprimiez manuellement le rappel dans l'application.</li>
+            <li><strong>Discussions de santé (Chat IA) :</strong> Votre historique de chat avec l'assistant de santé IA est conservé sur Firestore tant que votre compte est actif.</li>
+          </ul>
+          <p><strong>Suppression du compte :</strong> En cas de demande de suppression de compte adressée au support, toutes les données associées (profil Firebase Auth, historique de scans MongoDB, images GridFS, rappels et discussions Firestore) sont définitivement supprimées sous 30 jours, sous réserve d'éventuelles obligations légales de conservation temporaire.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <p>We ensure that your personal data is not kept longer than necessary for the purposes for which it is processed:</p>
+          <ul className="list-disc list-inside space-y-1.5 ml-2">
+            <li><strong>Account Identifiers:</strong> Your account information (email address and Firebase Auth profile) and usage credits are retained as long as your account remains active.</li>
+            <li><strong>Analysis History:</strong> To optimize storage, we limit history to a maximum of 50 medication scans per user. Older scans are automatically and permanently deleted when new scans are saved.</li>
+            <li><strong>Medication Images:</strong> Images of medication packages you upload are stored securely (locally in dev and via GridFS in prod) and are kept as long as the associated scan remains in your history of 50 items.</li>
+            <li><strong>Reminders:</strong> Schedules and configurations of your reminders are kept until you manually delete the reminder in the app.</li>
+            <li><strong>Health Chat Discussions:</strong> Your chat history with the IA health assistant is stored in Firestore as long as your account remains active.</li>
+          </ul>
+          <p><strong>Account Deletion:</strong> Upon account deletion request sent to support, all associated data (Firebase Auth profile, MongoDB scan history, GridFS images, reminders, and Firestore chats) are permanently deleted within 30 days, subject to any temporary legal retention requirements.</p>
+        </div>
+      )
+    },
+    {
+      title: lang === 'fr' ? "5. Vos Droits" : "5. Your Rights",
       icon: <Trash2 className="w-5 h-5 text-primary" />,
       content: lang === 'fr' ? (
         <p>
-          Conformément au RGPD et aux réglementations sur la vie privée, vous disposez d'un droit d'accès, de rectification et de suppression de vos données. Vous pouvez supprimer l'intégralité de vos données d'analyse directement depuis l'écran de profil dans l'application, ou en supprimant votre compte utilisateur.
+          Conformément au RGPD et aux réglementations sur la vie privée, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles. L'application ne proposant pas de bouton de suppression automatique en libre-service, vous pouvez exercer ces droits à tout moment en envoyant votre demande par e-mail à notre support à l'adresse <strong>support@medscan.cc</strong>. Nous traiterons votre demande de suppression définitive de compte et de toutes les données associées sous 30 jours.
         </p>
       ) : (
         <p>
-          In accordance with GDPR and privacy regulations, you have the right to access, rectify, and delete your data. You can delete all your analysis data directly from the profile screen in the app, or by deleting your user account.
+          In accordance with GDPR and privacy regulations, you have the right to access, rectify, and delete your data. As the application does not currently feature a self-service automatic deletion button, you can exercise these rights at any time by sending your request via email to our support at <strong>support@medscan.cc</strong>. We will process your request for permanent deletion of your account and all associated data within 30 days.
         </p>
       )
     },
     {
-      title: lang === 'fr' ? "5. Avertissement médical (Disclaimer)" : "5. Medical Disclaimer",
+      title: lang === 'fr' ? "6. Avertissement médical (Disclaimer)" : "6. Medical Disclaimer",
       icon: <Stethoscope className="w-5 h-5 text-primary" />,
       content: lang === 'fr' ? (
         <p>
