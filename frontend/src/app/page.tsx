@@ -1054,18 +1054,18 @@ export default function Home() {
                 className="h-8 w-auto object-contain"
               />
             </a>
-            <div 
-              className="relative flex items-center justify-center px-8 py-3.5 rounded-full bg-slate-900 border border-slate-800 opacity-45 grayscale pointer-events-none cursor-not-allowed group shadow-lg"
+            <a 
+              href="https://play.google.com/store/apps/details?id=com.seinimomo.medscanapp&pcampaignid=web_share"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center px-8 py-3.5 rounded-full bg-[#030712] hover:bg-black text-white border border-slate-800 transition-all shadow-lg active:scale-95"
             >
               <img 
                 src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" 
-                alt="Google Play" 
-                className="h-8 w-auto object-contain select-none"
+                alt="Google Play Store" 
+                className="h-8 w-auto object-contain"
               />
-              <span className="absolute -top-3 bg-blue-600 text-[9px] font-bold text-white px-2.5 py-0.5 rounded-full shadow-md uppercase tracking-wider scale-90 select-none">
-                {t.soonAvailable}
-              </span>
-            </div>
+            </a>
           </motion.div>
 
           {/* Centered Image Mockup Underneath */}
@@ -1660,18 +1660,18 @@ export default function Home() {
                   className="h-7 w-auto object-contain" 
                 />
               </a>
-              <div 
-                className="relative flex items-center justify-center px-6 py-2.5 rounded-full bg-slate-900 border border-white/10 opacity-45 grayscale pointer-events-none cursor-not-allowed"
+              <a 
+                href="https://play.google.com/store/apps/details?id=com.seinimomo.medscanapp&pcampaignid=web_share"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center px-6 py-2.5 rounded-full bg-[#030712] hover:bg-black text-white border border-white/10 transition-all shadow-lg active:scale-95"
               >
                 <img 
                   src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" 
-                  alt="Google Play" 
-                  className="h-7 w-auto object-contain select-none" 
+                  alt="Google Play Store" 
+                  className="h-7 w-auto object-contain" 
                 />
-                <span className="absolute -top-3 bg-blue-600 text-[9px] font-bold text-white px-2.5 py-0.5 rounded-full shadow-md uppercase tracking-wider scale-90 select-none">
-                  {t.soonAvailable}
-                </span>
-              </div>
+              </a>
             </div>
           </div>
 
